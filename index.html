@@ -251,6 +251,10 @@ body { padding-top: 80px; }
             <a id="factlityPage" href="#" style="background: #8d6e63; color: white; padding: 12px 20px; text-decoration: none; border-radius: 12px; font-family: 'Caveat', cursive; font-size: 1.3rem; box-shadow: 3px 3px 0px #5d4037; display: inline-block; transition: transform 0.2s;">
                📅 Go to Facility Booking
             </a>
+<a id="addVehiclePageBtn" href="#" style="background: #8d6e63; color: white; padding: 12px 20px; text-decoration: none; border-radius: 12px; font-family: 'Caveat', cursive; font-size: 1.3rem; box-shadow: 3px 3px 0px #5d4037; display: inline-block;">
+                   🚗 Add Vehicle
+                </a>
+            
             <button id="backToHomeBtn" style="font-family: 'Caveat', cursive; font-size: 1.3rem; background: #d32f2f; color: white; border: none; padding: 10px 20px; border-radius: 12px; cursor: pointer; box-shadow: 3px 3px 0px #5d4037; margin-top: 0;">
                🔍 Society Search
             </button>
@@ -294,6 +298,10 @@ body { padding-top: 80px; }
         let currentGlobalIndex = 0;
         let totalGlobalSlides = 0;
 
+
+document.getElementById("addVehiclePageBtn").href = `entry.html?societyId=${societyId}`;
+
+        
         function showModal(content) { document.getElementById("result").innerHTML = content; modal.style.display = "block"; }
         window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
 

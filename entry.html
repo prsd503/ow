@@ -100,7 +100,6 @@
 
         initPage();
 
-        // When a flat is selected, calculate remaining allowances and generate input boxes dynamically
         document.getElementById("flatSelect").addEventListener("change", async (e) => {
             const flatNumber = e.target.value;
             const container = document.getElementById("dynamicVehicleFields");
@@ -114,7 +113,6 @@
             const max4W = societyData.max4Wheeler !== undefined ? societyData.max4Wheeler : 1;
             const max2W = societyData.max2Wheeler !== undefined ? societyData.max2Wheeler : 2;
 
-            // Fetch already registered vehicles for this flat
             const vehiclesRef = collection(db, "vehicles");
             const flatQuery = query(vehiclesRef, where("societyName", "==", targetSociety), where("flatNumber", "==", flatNumber));
             const flatSnap = await getDocs(flatQuery);
@@ -136,7 +134,6 @@
                 return;
             }
 
-            // Generate 4-Wheeler Fields
             if (allowed4WInputs > 0) {
                 const title4 = document.createElement("div");
                 title4.className = "section-title";
@@ -154,7 +151,6 @@
                 }
             }
 
-            // Generate 2-Wheeler Fields
             if (allowed2WInputs > 0) {
                 const title2 = document.createElement("div");
                 title2.className = "section-title";
@@ -190,12 +186,11 @@
             const vehiclesRef = collection(db, "vehicles");
 
             try {
-                // Validate all entered vehicle numbers for duplicates first
                 for (let input of vehicleInputs) {
                     const vNum = input.value.trim().toUpperCase();
                     if (!vNum) continue;
 
-                    const q = query(vehiclesRef, where("societyName", "==", targetSociety), where("vehicleNumber", ==, vNum));
+                    const q = query(vehiclesRef, where("societyName", "==", targetSociety), where("vehicleNumber", "==", vNum));
                     const existingSnap = await getDocs(q);
                     if (!existingSnap.empty) {
                         showModal(`<p>❌ <b>Duplicate Entry</b><br>Vehicle number <b>${vNum}</b> is already registered.</p>`);
@@ -203,7 +198,6 @@
                     }
                 }
 
-                // Save all valid inputs to Firestore
                 for (let input of vehicleInputs) {
                     const vNum = input.value.trim().toUpperCase();
                     const vType = input.dataset.type;

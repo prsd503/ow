@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Data | Owl Watcher</title>
+    <style>
+        body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
+        .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; max-width: 400px; margin: auto; }
+        select { width: 90%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; margin-bottom: 20px; }
+        button { background: #d32f2f; color: white; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; }
+        .back-btn { background: #8d6e63; margin-top: 15px; text-decoration: none; display: inline-block; padding: 10px 20px; border-radius: 10px; color: white; font-size: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Data Deletion Request</h2>
+        <p>Select what you would like to remove from our registry:</p>
+        <select id="deleteOption">
+            <option value="Specific Vehicle">Delete Specific Vehicle Data</option>
+            <option value="All Data">Delete All Society Data</option>
+        </select>
+        <input type="text" id="details" placeholder="Enter Vehicle Number (if specific)" style="width: 85%; padding: 10px; margin-bottom: 10px;">
+        <button id="submitDeleteReq">Submit Request via WhatsApp</button>
+        <div>
+            <a href="admin.html" class="back-btn">⬅️ Back to Admin Portal</a>
+        </div>
+    </div>
+    <script type="module" src="deletedata-logic.js"></script>
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owl Watcher 🦉 - Admin Portal User Guide</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #0076a3;
+            --accent-color: #e74c3c;
+            --bg-light: #f8f9fa;
+            --text-main: #34495e;
+            --border-color: #dcdde1;
+            --note-bg: #f4f9fc;
+            --note-border: #3498db;
+            --warning-bg: #fff5f5;
+            --warning-border: #e74c3c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-main);
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Layout Container */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 40px;
+        }
+
+        /* Sidebar / Sticky Navigation */
+        .sidebar {
+            position: sticky;
+            top: 40px;
+            height: fit-content;
+            background-color: var(--bg-light);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .sidebar h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 8px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar li {
+            margin-bottom: 12px;
+        }
+
+        .sidebar a {
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .sidebar a:hover {
+            color: var(--secondary-color);
+        }
+
+        /* Main Content Styling */
+        .main-content {
+            background: #ffffff;
+        }
+
+        .header {
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 20px;
+            margin-bottom: 35px;
+        }
+
+        .brand-title {
+            font-size: 2.2rem;
+            color: var(--primary-color);
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-subtitle {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .welcome-box {
+            background-color: var(--bg-light);
+            padding: 15px 20px;
+            border-left: 4px solid var(--secondary-color);
+            border-radius: 0 4px 4px 0;
+            margin-bottom: 30px;
+            font-size: 1.05rem;
+        }
+
+        section {
+            margin-bottom: 40px;
+            scroll-margin-top: 40px; /* Provides padding when skipping via anchor links */
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        /* Styled Lists & Inline Items */
+        .guide-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+
+        .guide-list li {
+            margin-bottom: 12px;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        .guide-list li::before {
+            content: "•";
+            color: var(--secondary-color);
+            font-weight: bold;
+            font-size: 1.2rem;
+            position: absolute;
+            left: 0;
+            top: -2px;
+        }
+
+        .guide-list strong {
+            color: var(--primary-color);
+        }
+
+        /* Sub-action items */
+        .action-items {
+            margin: 10px 0 10px 20px;
+            background: #fafbfc;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px dashed var(--border-color);
+        }
+
+        /* Callout Boxes */
+        .callout {
+            padding: 15px 18px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+
+        .callout.note {
+            background-color: var(--note-bg);
+            border-left: 4px solid var(--note-border);
+        }
+
+        .callout.warning {
+            background-color: var(--warning-bg);
+            border-left: 4px solid var(--warning-border);
+        }
+
+        .callout h4 {
+            margin: 0 0 6px 0;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .callout.note h4 { color: #2980b9; }
+        .callout.warning h4 { color: #c0392b; }
+
+        /* Support Footer */
+        .support-footer {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        .support-footer a {
+            color: #fff;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+            .sidebar {
+                position: relative;
+                top: 0;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#getting-started">1. Getting Started</a></li>
+                <li><a href="#searching">2. Searching for a Vehicle</a></li>
+                <li><a href="#adding-vehicles">3. Adding New Vehicles</a></li>
+                <li><a href="#bulk-operations">4. Bulk Operations</a></li>
+                <li><a href="#maintenance">5. Maintenance & Support</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Guide Content -->
+        <main class="main-content">
+            <header class="header">
+                <h1 class="brand-title">Owl Watcher 🦉</h1>
+                <div class="brand-subtitle">Admin Portal User Guide</div>
+            </header>
+
+            <div class="welcome-box">
+                Welcome to your new digital vehicle registry! This guide will help you manage your society’s vehicle records quickly and securely.
+            </div>
+
+            <!-- Section 1 -->
+            <section id="getting-started">
+                <h2>1. Getting Started</h2>
+                <ul class="guide-list">
+                    <li><strong>Access:</strong> Open your assigned Admin URL in your browser/app.</li>
+                    <li><strong>Login:</strong> Enter the credentials provided by the Owl Watcher support team.</li>
+                    <li><strong>Security:</strong> Please keep your login details private. If you ever suspect unauthorized access, contact us immediately to reset your password.</li>
+                </ul>
+            </section>
+
+            <!-- Section 2 -->
+            <section id="searching">
+                <h2>2. Searching for a Vehicle</h2>
+                <p>To quickly identify a vehicle owner or flat number, perform the following steps:</p>
+                <ul class="guide-list">
+                    <li>Enter the full Vehicle Number (e.g., <code>GJ01AB1234</code>) into the search box.</li>
+                    <li>Click <strong>Search</strong>.</li>
+                </ul>
+                
+                <div class="action-items">
+                    <p style="margin-top:0; font-weight: bold; color: var(--primary-color);">Actionable Results Framework:</p>
+                    <ul class="guide-list" style="margin-bottom: 0;">
+                        <li><strong>WhatsApp:</strong> Click the green button to instantly message the owner about their vehicle.</li>
+                        <li><strong>Edit:</strong> Update flat details or mobile numbers if they change.</li>
+                        <li><strong>Delete:</strong> Remove records when a resident moves out.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 3 -->
+            <section id="adding-vehicles">
+                <h2>3. Adding New Vehicles</h2>
+                <p>Keep your database current by adding new arrivals immediately:</p>
+                <ul class="guide-list">
+                    <li>Navigate to the <strong>Add Vehicle</strong> section.</li>
+                    <li>Enter the <strong>Vehicle Number</strong>, <strong>Flat/Name</strong>, <strong>Mobile Number</strong>, and <strong>Vehicle Type</strong>.</li>
+                    <li>Click <strong>Save to Registry</strong>.</li>
+                </ul>
+                <div class="callout note">
+                    <h4>ℹ️ System Intelligence Note</h4>
+                    The system will automatically notify you if a vehicle is already registered to prevent duplicate entries.
+                </div>
+            </section>
+
+            <!-- Section 4 -->
+            <section id="bulk-operations">
+                <h2>4. Bulk Operations (For System Admins)</h2>
+                <p>You can manage hundreds of records at once using standardized CSV files.</p>
+                <ul class="guide-list">
+                    <li><strong>Preparation:</strong> Download our pre-formatted CSV Template by clicking the <strong>"Download CSV Template"</strong> button. Open this file in Microsoft Excel or your choice of spreadsheet software, input your registry data, and save it back in <code>.csv</code> format.</li>
+                    <li><strong>Importing:</strong> Once your file is ready, click <strong>Bulk Import CSV</strong>. The system will securely scan for new records and automatically skip exact duplicates.</li>
+                </ul>
+
+                <div class="callout warning">
+                    <h4>⚠️ Strict Data Quality & Pipeline Constraints</h4>
+                    <ul style="margin: 5px 0 0 0; padding-left: 20px;">
+                        <li style="margin-bottom: 6px;"><strong>Formatting Address Records:</strong> Always use the exact same format structural baseline for Flat Numbers (e.g., use <code>"A-101"</code> systematically rather than mixing variants like <code>"A101"</code> or <code>"A 101"</code>) to ensure consistent querying data maps.</li>
+                        <li style="margin-bottom: 6px;"><strong>Mobile Data:</strong> Ensure all registered mobile entries start with country code prefix <code>91</code>.</li>
+                        <li style="margin-bottom: 0;"><strong>Import Threshold limits:</strong> The processing system allows bulk imports of up to a maximum limit of **500 vehicle entries** at a time per batch upload.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 5 -->
+            <section id="maintenance">
+                <h2>5. Maintenance & Support</h2>
+                <ul class="guide-list">
+                    <li><strong>Data Backups:</strong> We highly recommend that you explicitly request a full data export from us periodically to maintain a local, offline version of your registry history records.</li>
+                    <li><strong>Advanced Requests:</strong> High-risk features like <em>Bulk Data Deletion</em> or <em>Full Structural Data Exports</em> are strictly managed directly by the specialized Owl Watcher team to secure data integrity. Simply forward us an operational ticket request and our backend operators will complete the actions for you safely.</li>
+                    <li><strong>Regular Cleanup Cycles:</strong> We strongly advise performing a comprehensive structural "cleanup" of your platform database ecosystem every <strong>6 months</strong> to clean and remove historical vehicles that no longer actively belong to your society boundaries.</li>
+                </ul>
+            </section>
+
+            <!-- Need Help Box -->
+            <footer class="support-footer">
+                <h3 style="margin: 0 0 10px 0; font-size: 1.2rem;">Need Professional Assistance?</h3>
+                <p style="margin: 0;">If you encounter any workflow blockages or technical structural system issues, please reach out directly via email to: <a href="mailto:mail.cnqdigital@gmail.com">mail.cnqdigital@gmail.com</a></p>
+            </footer>
+        </main>
+    </div>
+
+<div style="text-align: center; margin: 20px 0;">
+    <a href="https://prsd503.github.io/Athena/admin.html" style="
+        display: inline-block;
+        background-color: #2c3e50;
+        color: #ffffff;
+        padding: 10px 20px;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        font-size: 14px;
+        font-weight: bold;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: background-color 0.2s ease;
+    " onmouseover="this.style.backgroundColor='#0076a3'" onmouseout="this.style.backgroundColor='#2c3e50'">
+        Back to Admin Portal
+    </a>
+</div>
+    
+</body>
+</html>

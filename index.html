@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+    <title>Owl Watcher | Home</title>
+    <style>
+
+/* Professional Navigation */
+        .main-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            background: #fdf6e3;
+            border-bottom: 2px solid #8d6e63;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .nav-logo {
+            font-family: 'Caveat', cursive;
+            color: #5d4037;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-right: 20px;
+        }
+        .nav-links { display: flex; gap: 15px; }
+        .nav-links a { 
+            text-decoration: none; 
+            color: #5d4037; 
+            font-weight: bold; 
+            font-family: 'Caveat', cursive; /* Applied Caveat font */
+            font-size: 1.4rem;             /* Increased size slightly for readability */
+        }
+/* Mobile Menu Button */
+.menu-btn { display: none; background: #8d6e63; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-family: 'Caveat', cursive; font-size: 1.1rem; }
+
+/* Responsive Mobile View */
+@media (max-width: 768px) {
+    .menu-btn { display: block; }
+    .nav-links { 
+        display: none; 
+        flex-direction: column; 
+        position: absolute; 
+        top: 70px; 
+        width: 100%; 
+        background: #fdf6e3; 
+        padding: 20px; 
+        z-index: 999;
+    }
+    .nav-links.active { display: flex; }
+}
+
+/* Add padding to body so content isn't hidden behind the fixed menu */
+body { padding-top: 80px; }
+        
+/* Ensure the hamburger button is visible and styled */
+.hamburger { 
+    display: none; 
+    background: none; 
+    border: none; 
+    font-size: 28px; 
+    cursor: pointer; 
+    color: #000; 
+    z-index: 1001; 
+}
+
+@media (max-width: 768px) {
+    .hamburger { display: block; }
+    
+    .nav-links {
+        display: none;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        background: #fdf6e3; 
+        flex-direction: column;
+        padding: 20px;
+        border-bottom: 2px solid #8d6e63;
+        z-index: 999; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+    }
+    
+    .nav-links.active { display: flex; }
+}
+
+/* Desktop View: Show full links, hide Menu button */
+.nav-links { display: flex; }
+.menu-btn { display: none; }
+
+/* Mobile View (e.g., screens 768px or smaller) */
+@media (max-width: 768px) {
+    .nav-links { 
+        display: none; 
+        flex-direction: column;
+        position: absolute;
+        top: 80px;
+        left: 0;
+        width: 100%;
+        background: #fdf6e3;
+        max-width: 85%;
+        z-index: 999;
+    }
+    .menu-btn { display: block; } 
+    .nav-links.active { display: flex; }
+}
+
+        body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
+        .card { max-width: 100vw; margin: 0px 5px; }
+        input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
+        button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top:10px; }
+        
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fff; margin: 15% auto; padding: 20px; border: 2px solid #8d6e63; width: 80%; max-width: 320px; border-radius: 20px; }
+        .close { color: #5d4037; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        
+        /* Notice Board Styles */
+        #notice-board { margin-top: 25px; padding: 20px; border: 1px solid #dcdde1; border-radius: 15px; background: #fcfcfc; text-align: left; }
+        #notice-content { font-family: sans-serif; font-size: 1.05rem; line-height: 1.5; color: #2f3640; margin-top: 10px; overflow-wrap: break-word; word-wrap: break-word; word-break: break-word; }
+        .notice-date { font-size: 0.75rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Billboard Slider Styles Optimization for 720x720 Square Artwork */
+        #ad-billboard, #ad-billboard-global { margin-top: 25px; padding: 15px; border: 2px dashed #8d6e63; border-radius: 15px; background: #fff8f5; text-align: center; overflow: hidden; position: relative; }
+        .ad-slider-container, .global-ad-slider-container { width: 100%; height: 340px; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 auto; }
+        
+        .ad-slide, .global-ad-slide { width: 100%; height: 100%; object-fit: contain; display: none; border-radius: 10px; background: #fafafa; }
+        .ad-slide.active, .global-ad-slide.active { display: block; }
+        .ad-link { font-size: 0.9rem; color: #8d6e63; text-decoration: underline; display: inline-block; margin-top: 8px; }
+
+        /* Billboard Navigation Controls */
+        .ad-controls { display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 10px; }
+        .ad-nav-btn { background: #8d6e63; color: white; border: none; padding: 4px 12px; font-size: 0.9rem; border-radius: 6px; cursor: pointer; transition: background 0.2s; font-family: sans-serif; }
+        .ad-nav-btn:hover { background: #6d4c41; }
+
+        .btn-msg { background: #25D366; display: inline-block; margin-top: 10px; padding: 10px; color: white; text-decoration: none; border-radius: 10px; font-size: 1rem; }
+        .admin-btn { display: inline-block; background: #8d6e63; color: white; padding: 10px 25px; text-decoration: none; border-radius: 10px; font-family: 'Caveat', cursive; font-size: 1.2rem; cursor: pointer; margin-top: 15px; }
+        .switch-btn { background: #d32f2f; padding: 4px 10px; font-size: 0.9rem; border-radius: 6px; margin-left: 10px; cursor: pointer; display: inline-block; color: white; vertical-align: middle; }
+
+        @keyframes fadeInSlide {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .card { animation: subtleFocus 3s infinite ease-in-out; }
+
+        #society-verification > * {
+            opacity: 0;
+            animation: fadeInSlide 0.6s ease-out forwards;
+            animation-delay: 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+<div id="startOverlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #fdf6e3; z-index: 10000; display: flex; justify-content: center; align-items: center; flex-direction: column; padding: 20px; box-sizing: border-box;">
+        <div style="max-width: 500px; width: 90%; padding: 30px; background: #ffffff; border: 2px solid #8d6e63; border-radius: 20px; box-shadow: 6px 6px 0px #5d4037; text-align: center;">
+            <h1 id="overlayWelcomeText" style="font-family: 'Caveat', cursive; color: #5d4037; margin-bottom: 5px; font-size: 2.8rem; line-height: 1.1; white-space: pre-line;">Welcome <br>to <br>Owl Watcher 🦉</h1>        
+            
+            <!-- Commercial Subtitle / Tagline -->
+            <p style="font-family: sans-serif; color: #795548; font-size: 0.95rem; margin-bottom: 25px; font-weight: 600; letter-spacing: 0.5px;">
+                Smart Vehicle Tracking & Management System
+            </p>
+
+           <!-- Trust / Feature Indicators -->
+<div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; font-family: sans-serif; font-size: 0.8rem; color: #8d6e63;">
+    <span style="background: #fdf6e3; padding: 5px 10px; border-radius: 8px; border: 1px solid #d7ccc8;">🛡️ Secure Access</span>
+    <span style="background: #fdf6e3; padding: 5px 10px; border-radius: 8px; border: 1px solid #d7ccc8;">⚡ Instant Search</span>
+    <span style="background: #fdf6e3; padding: 5px 10px; border-radius: 8px; border: 1px solid #d7ccc8;">📸 Photo Studio</span>
+</div>
+
+            <button id="startButton" style="font-family: 'Caveat', cursive; font-size: 1.8rem; padding: 12px 35px; cursor:pointer; background: #8d6e63; color: white; border: none; border-radius: 12px; box-shadow: 3px 3px 0px #5d4037; transition: transform 0.1s;">Enter Portal</button>
+
+            <!-- Commercial Inquiry Link 
+            <div style="margin-top: 20px; font-family: sans-serif; font-size: 0.85rem;">
+                <a id="registerSocietyBtn" href="https://wa.me/919033406816?text=Hi,%20I%20want%20to%20register%20my%20society/organisation%20in%20Owl%20Watcher%20app" target="_blank" style="color: #8d6e63; text-decoration: underline; font-weight: bold;">Want to register your group? Contact Us</a>
+            </div> -->
+        </div>
+    </div>
+
+    <div class="card">
+        <!-- Unified Navigation -->
+        <nav class="main-nav" style="margin-top: 50px;">
+            <div class="nav-logo">Owl Watcher 🦉</div>
+            <button class="menu-btn" id="menuToggle">☰</button>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html" style="background-color: yellow;">Home</a>
+                <a href="admin.html">Admin Portal</a>
+                <a href="guard.html">Security Guard Portal</a>
+                <a href="studio.html">Photo Studio Portal</a>
+                <a href="https://wa.me/919033406816">Contact Us</a>
+            </div>
+        </nav>
+        
+        <div id="society-verification">
+            <input type="text" id="societyInput" placeholder="Enter Society Name">
+            <br>
+            <button id="verifyBtn">Proceed</button>
+            <br>
+            <div id="ad-billboard-global">
+                <h4 style="margin: 0 0 10px 0; font-family: 'Caveat', cursive; color: #8d6e63;">✨ Global Billboard ✨</h4>
+                <div class="global-ad-slider-container" id="globalAdSlider">
+                    <p id="global-ad-placeholder" style="color: #a1887f;">Space Available for Your Content</p>
+                </div>
+                
+                <div class="ad-controls" id="globalAdControls" style="display: none;">
+                    <button class="ad-nav-btn" id="prevGlobalAdBtn">❮ Prev</button>
+                    <button class="ad-nav-btn" id="nextGlobalAdBtn">Next ❯</button>
+                </div>
+                <a id="globalAdLink" href="https://wa.me/919033406816?text=Hi%20I%20want%20to%20apply%20for%20global%20ad%20in%20Owl%20Watcher" target="_blank" class="ad-link">Advertise Globally Here!</a>
+            </div>
+        </div>
+    
+
+    <div id="vehicle-search" style="display:none;">
+        <p style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+            <span>Society: <span id="displaySocietyName" style="font-weight:bold;"></span></span>
+            <button id="switchSocietyBtn" class="switch-btn">Change</button>
+        </p>
+        <input type="text" id="vehicleInput" placeholder="Enter Vehicle Number">
+        <br>
+        <button id="searchBtn">Search</button>
+        <br>
+    
+        <div id="guard-container" style="margin-top:20px;"></div>
+        
+        <div id="notice-board">
+            <h3 style="margin-top: 0; font-family: 'Caveat', cursive; border-bottom: 2px solid #8d6e63; padding-bottom: 5px;">📢 Notice Board</h3>
+            <div id="notice-content">Loading...</div>
+         </div>
+
+        <div id="ad-billboard">
+            <h4 style="margin: 0 0 10px 0; font-family: 'Caveat', cursive; color: #8d6e63;">Birthday/Anniversay Wishes, Offers, Ads & More</h4>
+            <div class="ad-slider-container" id="adSlider">
+                <p id="ad-placeholder" style="color: #a1887f;">Space Available</p>
+                <br>
+            </div>
+            
+            <div class="ad-controls" id="adControls" style="display: none;">
+                <button class="ad-nav-btn" id="prevAdBtn">❮ Prev</button>
+                <button class="ad-nav-btn" id="nextAdBtn">Next ❯</button>
+            </div>
+
+            <a id="localAdLink" href="#" target="_blank" class="ad-link">Contact for Posting Paid Content Here!</a>
+        </div>
+
+        <!-- Properly Placed & Styled Action Buttons Section -->
+        <div style="margin-top: 25px; border-top: 2px dashed #8d6e63; padding-top: 20px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+            <a id="factlityPage" href="#" style="background: #8d6e63; color: white; padding: 12px 20px; text-decoration: none; border-radius: 12px; font-family: 'Caveat', cursive; font-size: 1.3rem; box-shadow: 3px 3px 0px #5d4037; display: inline-block; transition: transform 0.2s;">
+               📅 Go to Facility Booking
+            </a>
+            <button id="backToHomeBtn" style="font-family: 'Caveat', cursive; font-size: 1.3rem; background: #d32f2f; color: white; border: none; padding: 10px 20px; border-radius: 12px; cursor: pointer; box-shadow: 3px 3px 0px #5d4037; margin-top: 0;">
+               🔍 Society Search
+            </button>
+        </div>
+    </div>
+
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="document.getElementById('resultModal').style.display='none'">&times;</span>
+            <div id="result"></div>
+        </div>
+    </div>
+</div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, getDoc, doc, setDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
+            authDomain: "finder-owl.firebaseapp.com",
+            projectId: "finder-owl",
+            storageBucket: "finder-owl.firebasestorage.app",
+            messagingSenderId: "1011347100861",
+            appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4"
+        };
+
+        const themeAudio = new Audio('tapenter.mp3'); 
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const modal = document.getElementById("resultModal");
+        let currentSociety = "";
+        let guardUnsubscribe = null;
+        let adInterval = null;
+        let globalAdInterval = null;
+        
+        let owlWatcherTeamPhone = "919033406816";
+        
+        let currentIndex = 0;
+        let totalSlides = 0;
+        let currentGlobalIndex = 0;
+        let totalGlobalSlides = 0;
+
+        function showModal(content) { document.getElementById("result").innerHTML = content; modal.style.display = "block"; }
+        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
+
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.toggle('active');
+        });
+        
+        async function fetchTeamPhone() {
+            try {
+                const configDoc = await getDoc(doc(db, "configs", "owlwatcher"));
+                if (configDoc.exists()) {
+                    const data = configDoc.data();
+                    if (data.teamPhone) {
+                        owlWatcherTeamPhone = data.teamPhone.replace(/\D/g, '');
+                    }
+                    if (data.welcomeMessage) {
+                        const welcomeEl = document.getElementById('overlayWelcomeText');
+                        if (welcomeEl) {
+                            welcomeEl.innerHTML = data.welcomeMessage.replace(/\n/g, '<br>');
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch dynamic master admin phone, using fallback.", err);
+            }
+        }
+
+        function updateAdLinks(societyName = "") {
+            const globalAdLink = document.getElementById("globalAdLink");
+            if (globalAdLink) {
+                const globalText = encodeURIComponent("Hi I want to apply for global ad in Owl Watcher");
+                globalAdLink.href = `https://wa.me/${owlWatcherTeamPhone}?text=${globalText}`;
+            }
+
+            const registerBtn = document.getElementById("registerSocietyBtn");
+            if (registerBtn) {
+                const regText = encodeURIComponent("Hi, I want to register my society/organisation in Owl Watcher app");
+                registerBtn.href = `https://wa.me/${owlWatcherTeamPhone}?text=${regText}`;
+            }
+
+            const localAdLink = document.getElementById("localAdLink");
+            if (localAdLink && societyName) {
+                const localText = encodeURIComponent(`Hi I want to apply for local-society post in Owl Watcher for ${societyName}`);
+                localAdLink.href = `https://wa.me/${owlWatcherTeamPhone}?text=${localText}`;
+                localAdLink.innerText = `Contact for Posting Paid Content in ${societyName}!`;
+            }
+        }
+
+        async function loadNotice(societyId) {
+            const noticeDiv = document.getElementById('notice-content');
+            const docRef = doc(db, "notices", societyId);
+            const snap = await getDoc(docRef);
+            
+            const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
+            const formatter = new Intl.DateTimeFormat('en-CA', options);
+            const currentIstDateStr = formatter.format(new Date());
+
+            if (snap.exists()) {
+                let data = snap.data();
+                let todayMsg = data.todayMessage || "";
+                let tomorrowMsg = data.tomorrowMessage || "";
+                let storedDate = data.date || currentIstDateStr;
+
+                if (storedDate < currentIstDateStr) {
+                    todayMsg = tomorrowMsg;
+                    tomorrowMsg = "";
+                    storedDate = currentIstDateStr;
+
+                    try {
+                        await setDoc(docRef, { 
+                            todayMessage: todayMsg, 
+                            tomorrowMessage: tomorrowMsg, 
+                            date: storedDate 
+                        }, { merge: true });
+                    } catch (err) {
+                        console.error("Failed to rollover notice automatically:", err);
+                    }
+                }
+
+                if (todayMsg) {
+                    const characterLimit = 60; 
+                    let previewText = todayMsg;
+                    let readMoreLink = "";
+
+                    if (todayMsg.length > characterLimit) {
+                        previewText = todayMsg.substring(0, characterLimit).trim() + "...";
+                        readMoreLink = ` <a href="notice.html?id=${societyId}" style="color: #8d6e63; font-weight: bold; text-decoration: underline; font-family: sans-serif; font-size: 0.9rem;">Read More</a>`;
+                    }
+
+                    noticeDiv.innerHTML = `<p class="notice-date">${currentIstDateStr}</p><div>${previewText}${readMoreLink}</div>`;
+                } else {
+                    noticeDiv.innerText = "No notices for today.";
+                }
+            } else { 
+                noticeDiv.innerText = "No notices for today."; 
+            }
+        }
+
+        function setupGuard(societyId) {
+            if (guardUnsubscribe) guardUnsubscribe();
+            guardUnsubscribe = onSnapshot(doc(db, "societies", societyId), (snap) => {
+                if (snap.exists() && snap.data().activeGuardName) {
+                    const g = snap.data();
+                    document.getElementById("guard-container").innerHTML = `
+                        <div style="padding:10px; border:2px solid #8d6e63; border-radius:10px; background:#fdf6e3;">
+                            <p style="margin:0;">On Duty: <b>${g.activeGuardName}</b></p>
+                            <a href="tel:${g.activeGuardPhone}" class="btn-msg" style="background:#27ae60; margin-top:5px;">📞 Call Security</a>
+                        </div>`;
+                } else {
+                    document.getElementById("guard-container").innerHTML = "";
+                }
+            });
+        }
+
+        function changeSlide(direction) {
+            const slider = document.getElementById("adSlider");
+            const slides = slider.getElementsByClassName("ad-slide");
+            if (slides.length <= 1) return;
+
+            slides[currentIndex].classList.remove("active");
+            
+            if (direction === "next") {
+                currentIndex = (currentIndex + 1) % slides.length;
+            } else if (direction === "prev") {
+                currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+            }
+            
+            slides[currentIndex].classList.add("active");
+        }
+
+        function changeGlobalSlide(direction) {
+            const slider = document.getElementById("globalAdSlider");
+            const slides = slider.getElementsByClassName("global-ad-slide");
+            if (slides.length <= 1) return;
+
+            slides[currentGlobalIndex].classList.remove("active");
+            
+            if (direction === "next") {
+                currentGlobalIndex = (currentGlobalIndex + 1) % slides.length;
+            } else if (direction === "prev") {
+                currentGlobalIndex = (currentGlobalIndex - 1 + slides.length) % slides.length;
+            }
+            
+            slides[currentGlobalIndex].classList.add("active");
+        }
+
+        function startAdTimer() {
+            if (adInterval) clearInterval(adInterval);
+            const slider = document.getElementById("adSlider");
+            const slides = slider.getElementsByClassName("ad-slide");
+            
+            if (slides.length > 1) {
+                adInterval = setInterval(() => {
+                    changeSlide("next");
+                }, 5000);
+            }
+        }
+
+        function startGlobalAdTimer() {
+            if (globalAdInterval) clearInterval(globalAdInterval);
+            const slider = document.getElementById("globalAdSlider");
+            const slides = slider.getElementsByClassName("global-ad-slide");
+            
+            if (slides.length > 1) {
+                globalAdInterval = setInterval(() => {
+                    changeGlobalSlide("next");
+                }, 5000);
+            }
+        }
+
+        async function loadGlobalAdsPreLogin() {
+            const slider = document.getElementById("globalAdSlider");
+            const controls = document.getElementById("globalAdControls");
+            if(globalAdInterval) clearInterval(globalAdInterval);
+
+            try {
+                const globalQuery = query(
+                    collection(db, "ads"),
+                    where("type", "==", "global"),
+                    where("societyApproved", "==", true),
+                    where("owlWatcherApproved", "==", true)
+                );
+                
+                const snap = await getDocs(globalQuery);
+                if (snap.empty) {
+                    slider.innerHTML = `<p id="global-ad-placeholder" style="color: #a1887f;">Space Available for Your Content</p>`;
+                    controls.style.display = "none";
+                    return;
+                }
+
+                slider.innerHTML = "";
+                snap.forEach((doc) => {
+                    const adData = doc.data();
+                    if (adData.imageUrl) {
+                        slider.innerHTML += `<img src="${adData.imageUrl}" class="global-ad-slide" alt="Global Promotion">`;
+                    }
+                });
+
+                const slides = slider.getElementsByClassName("global-ad-slide");
+                totalGlobalSlides = slides.length;
+                currentGlobalIndex = 0;
+
+                if (totalGlobalSlides > 0) {
+                    slides[currentGlobalIndex].classList.add("active");
+                    if (totalGlobalSlides > 1) {
+                        controls.style.display = "flex";
+                        startGlobalAdTimer();
+                    } else {
+                        controls.style.display = "none";
+                    }
+                } else {
+                    slider.innerHTML = `<p id="global-ad-placeholder" style="color: #a1887f;">Space Available for Your Content</p>`;
+                    controls.style.display = "none";
+                }
+            } catch (error) {
+                console.error("Error setting up pre-login global ad banner: ", error);
+            }
+        }
+
+        async function loadAds(societyId) {
+            const slider = document.getElementById("adSlider");
+            const controls = document.getElementById("adControls");
+            if(adInterval) clearInterval(adInterval);
+
+            try {
+                const q = query(
+                    collection(db, "ads"), 
+                    where("societyId", "==", societyId),
+                    where("societyApproved", "==", true),
+                    where("owlWatcherApproved", "==", true)
+                );
+                
+                const snap = await getDocs(q);
+                if (snap.empty) {
+                    slider.innerHTML = `<p id="ad-placeholder" style="color: #a1887f;">Space Available for Your Content</p>`;
+                    controls.style.display = "none";
+                    return;
+                }
+
+                slider.innerHTML = "";
+                snap.forEach((doc) => {
+                    const adData = doc.data();
+                    if (adData.imageUrl) {
+                        slider.innerHTML += `<img src="${adData.imageUrl}" class="ad-slide" alt="Community Ad">`;
+                    }
+                });
+
+                const slides = slider.getElementsByClassName("ad-slide");
+                totalSlides = slides.length;
+                currentIndex = 0;
+
+                if (totalSlides > 0) {
+                    slides[currentIndex].classList.add("active");
+
+                    if (totalSlides > 1) {
+                        controls.style.display = "flex";
+                        startAdTimer();
+                    } else {
+                        controls.style.display = "none";
+                    }
+                } else {
+                    slider.innerHTML = `<p id="ad-placeholder" style="color: #a1887f;">Space Available for Your Content</p>`;
+                    controls.style.display = "none";
+                }
+            } catch (error) {
+                console.error("Error setting up dynamic ad array: ", error);
+            }
+        }
+
+        document.getElementById("nextAdBtn").addEventListener("click", () => {
+            changeSlide("next");
+            startAdTimer();
+        });
+
+        document.getElementById("prevAdBtn").addEventListener("click", () => {
+            changeSlide("prev");
+            startAdTimer();
+        });
+
+        document.getElementById("nextGlobalAdBtn").addEventListener("click", () => {
+            changeGlobalSlide("next");
+            startGlobalAdTimer();
+        });
+
+        document.getElementById("prevGlobalAdBtn").addEventListener("click", () => {
+            changeGlobalSlide("prev");
+            startGlobalAdTimer();
+        });
+
+        function showSearchScreen(societyName, societyId) {
+            currentSociety = societyName;
+            document.getElementById("society-verification").style.display = "none";
+            document.getElementById("vehicle-search").style.display = "block";
+            document.getElementById("displaySocietyName").innerText = currentSociety;
+
+            document.getElementById("factlityPage").href = "facility.html";
+            
+            updateAdLinks(societyName);
+
+            if (globalAdInterval) clearInterval(globalAdInterval);
+            setupGuard(societyId);
+            loadNotice(societyId);
+            loadAds(societyId);
+        }
+
+        function clearSocietySession() {
+            localStorage.removeItem("savedSocietyName");
+            localStorage.removeItem("savedSocietyId");
+            localStorage.removeItem("societyLoginTime");
+            if (guardUnsubscribe) guardUnsubscribe();
+            if (adInterval) clearInterval(adInterval);
+            currentSociety = "";
+            document.getElementById("vehicleInput").value = "";
+            document.getElementById("societyInput").value = "";
+            document.getElementById("vehicle-search").style.display = "none";
+            document.getElementById("society-verification").style.display = "block";
+            updateAdLinks();
+            loadGlobalAdsPreLogin();
+        }
+
+        document.getElementById("verifyBtn").addEventListener("click", async () => {
+            const input = document.getElementById("societyInput").value.trim().toLowerCase();
+            if (!input) return showModal("<p>⚠️ Please enter a society name.</p>");
+            
+            const snap = await getDocs(collection(db, "societies"));
+            const match = snap.docs.find(d => d.data().name?.toLowerCase() === input);
+            if (match) {
+                localStorage.setItem("savedSocietyName", match.data().name);
+                localStorage.setItem("savedSocietyId", match.id);
+                localStorage.setItem("societyLoginTime", Date.now().toString());
+                showSearchScreen(match.data().name, match.id);
+            } else { showModal("<p>❌ Society not found.</p>"); }
+        });
+
+        document.getElementById("searchBtn").addEventListener("click", async () => {
+            themeAudio.currentTime = 0;
+            themeAudio.play().catch(e => console.error("Audio playback failed:", e));
+
+            const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
+            if (!vNum) return showModal("<p>⚠️ Please enter a vehicle number.</p>");
+            
+            const snap = await getDocs(collection(db, "vehicles"));
+            const matches = snap.docs.filter(d => d.data().societyName?.toLowerCase() === currentSociety.toLowerCase() && d.data().vehicleNumber?.toUpperCase() === vNum);
+            if (matches.length > 0) {
+                let htmlContent = "";
+                matches.forEach(found => {
+                    const data = found.data();
+                    const msg = encodeURIComponent(`(Using: Owl-Watcher) Hello, vehicle ${data.vehicleNumber} of ${data.flatNumber}`);
+                    htmlContent += `<div style="margin-bottom:15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">✅ Vehicle: <b>${data.vehicleNumber}</b><br>Flat/Name: <b>${data.flatNumber}</b><br><div hidden><a href="https://wa.me/${data.mobileNumber?.replace(/\D/g, '')}?text=${msg}" target="_blank" class="btn-msg">💬 Message Admin</a></div></div>`;
+                });
+                showModal(htmlContent);
+            } else { 
+                showModal("<p>❌ Vehicle not found.</p>"); 
+            }
+        });
+
+        document.getElementById("switchSocietyBtn").addEventListener("click", () => {
+            clearSocietySession();
+        });
+
+        const studioPortalBtn = document.getElementById("studioPortalBtn");
+        if (studioPortalBtn) {
+            studioPortalBtn.addEventListener("click", () => {
+                window.open("studio.html", "_self");
+            });
+        }
+
+        document.getElementById("backToHomeBtn").addEventListener("click", () => {
+            clearSocietySession();
+        });
+        
+        async function updateContactUsWhatsAppLink() {
+            try {
+                await fetchTeamPhone();
+
+                const whatsappLinks = document.querySelectorAll('a[href*="wa.me"]');
+                whatsappLinks.forEach(link => {
+                    const urlObj = new URL(link.href);
+                    link.href = `https://wa.me/${owlWatcherTeamPhone}${urlObj.search}`;
+                });
+            } catch (err) {
+                console.error("Failed to fetch team phone for WhatsApp link:", err);
+            }
+        }
+        
+        window.addEventListener("DOMContentLoaded", async () => {
+            await fetchTeamPhone();
+            await updateContactUsWhatsAppLink();
+            updateAdLinks();
+
+            const savedName = localStorage.getItem("savedSocietyName");
+            const savedId = localStorage.getItem("savedSocietyId");
+            const loginTime = localStorage.getItem("societyLoginTime");
+            
+            if (savedName && savedId && loginTime) {
+                const elapsed = Date.now() - parseInt(loginTime, 10);
+                const fifteenMinutes = 15 * 60 * 1000;
+
+                if (elapsed >= fifteenMinutes) {
+                    clearSocietySession();
+                } else {
+                    showSearchScreen(savedName, savedId);
+                    setTimeout(() => {
+                        clearSocietySession();
+                    }, fifteenMinutes - elapsed);
+                }
+            } else {
+                loadGlobalAdsPreLogin();
+            }
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 5 * 60 * 1000);
+        });
+        
+        document.getElementById('startButton').addEventListener('click', function() {
+            document.getElementById('startOverlay').style.display = 'none';
+
+            const hoot = document.getElementById('hootSound');
+            hoot.volume = 0.5;
+            hoot.play().catch(e => console.log("Hoot play failed:", e));
+        });
+    </script>
+    <canvas id="fireCanvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999; display:none;"></canvas>
+    <audio id="hootSound" src="tapenter.mp3" preload="auto"></audio>
+
+<div id="owl-container">
+  <div id="owl-icon" onclick="activateOwlEffect()">🦉</div>
+  <audio id="owl-audio" src="theme.mp3" preload="auto"></audio>
+</div>
+
+<style>
+  #owl-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 9999;
+  }
+
+  #owl-icon {
+    font-size: 60px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.3s ease;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+  }
+
+  #owl-icon:hover {
+    transform: scale(1.15);
+  }
+
+  @keyframes enlargeAndShrinkTwice {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.6); }
+    50% { transform: scale(1); }
+    75% { transform: scale(1.6); }
+    100% { transform: scale(1); }
+  }
+
+  .active-effect {
+    animation: enlargeAndShrinkTwice 2s ease-in-out forwards;
+  }
+</style>
+
+<script>
+  function activateOwlEffect() {
+    const container = document.getElementById('owl-container');
+    const audio = document.getElementById('owl-audio');
+
+    if (container.classList.contains('active-effect')) return;
+
+    audio.currentTime = 0;
+    audio.play().catch(error => {
+      console.log("Audio playback blocked or file not found:", error);
+    });
+
+    container.classList.add('active-effect');
+
+    setTimeout(() => {
+      container.classList.remove('active-effect');
+    }, 2000);
+
+    // Trigger the flame particles animation when the owl is clicked
+    const canvas = document.getElementById('fireCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.style.display = 'block';
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let particles = [];
+    for(let i = 0; i < 150; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: canvas.height + Math.random() * 100,
+            size: Math.random() * 5 + 2,
+            speedY: Math.random() * 5 + 2,
+            color: '#e67e22'
+        });
+    }
+
+    function animateFlames() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+            p.y -= p.speedY;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        if(particles[0] && particles[0].y > -50) {
+            requestAnimationFrame(animateFlames);
+        } else {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvas.style.display = 'none';
+        }
+    }
+    animateFlames();
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+    <title>Security Guard Portal | Owl Watcher</title>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+</script>
+    
+    <style>
+        /* Base Theme */
+        body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; margin: 0; }
+        
+        /* Professional Navigation */
+        .main-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            background: #fdf6e3;
+            border-bottom: 2px solid #8d6e63;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .nav-logo {
+            font-family: 'Caveat', cursive;
+            color: #5d4037;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-right: 20px;
+        }
+        .nav-links { display: flex; gap: 15px; }
+        .nav-links a { text-decoration: none; color: #5d4037; font-weight: bold; }
+        
+        /* Mobile Menu Button Styling */
+        .menu-btn { 
+            display: none; 
+            background: #8d6e63; 
+            color: white; 
+            border: none; 
+            padding: 8px 15px; 
+            border-radius: 8px; 
+            font-family: 'Caveat', cursive; 
+            font-size: 1.1rem; 
+        }
+
+        /* Responsive Mobile View */
+        @media (max-width: 768px) {
+            .menu-btn { display: block; }
+            .nav-links { 
+                display: none; 
+                flex-direction: column; 
+                position: absolute; 
+                top: 70px; 
+                width: 100%; 
+                background: #fdf6e3; 
+                padding: 20px; 
+                z-index: 999;
+            }
+            .nav-links.active { display: flex; }
+        }
+
+        /* Card & UI Components */
+        .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 100vw; margin: 0 auto 20px auto; }
+        input, select { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; box-sizing: border-box; }
+        button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; }
+        #portalSection { display: none; }
+        
+        /* Forgot Password Link Styling */
+        .forgot-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #8d6e63;
+            font-size: 1.1rem;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .forgot-link:hover {
+            color: #5d4037;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Professional Navigation -->
+    <nav class="main-nav" style="margin-top: 50px;">
+        <div class="nav-logo">Owl Watcher 🦉</div>
+        <button class="menu-btn" id="menuToggle">☰</button>
+        <div class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="admin.html">Admin Portal</a>
+            <a href="guard.html" style="background-color: yellow;">Security Guard Portal</a>
+            <a href="studio.html">Photo Studio Portal</a>
+            <a id="dynamicContactLink" href="https://wa.me/919033406816" target="_blank">Contact Us</a>
+        </div>
+    </nav>
+
+    <!-- Login Section -->
+    <div class="card" id="login-section">
+         <h2>Security Guard Login</h2>
+         <input type="email" id="email" placeholder="Email">
+         <input type="password" id="pass" placeholder="Password">
+         <br>
+         <button id="loginBtn">Login</button>
+         <br>
+         <span class="forgot-link" id="forgotPasswordBtn">Forgot Password?</span>
+    </div>
+        
+    <!-- Portal Section -->
+    <div id="portalSection">
+        <div class="card">
+            <h2>Start Your Shift</h2>
+            <select id="guardSelect"><option>Loading...</option></select>
+            <br><button id="activateBtn">Set Me Active</button>
+        </div>
+        
+        <div class="card">
+            <h2>Vehicle Lookup</h2>
+            <input type="text" id="vSearch" placeholder="Vehicle Number">
+           <br> <button id="searchBtn">Search Owner</button>
+            <div id="result"></div>
+        </div>
+        <button id="logoutBtn" style="background:#d32f2f; display:none;">Logout</button>
+    </div>
+
+    <!-- Custom Modal Window (Centered & Flex-enabled) -->
+    <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:99999; justify-content:center; align-items:center;">
+        <div style="background:#fff; padding:25px; border-radius:15px; text-align:center; border:2px solid #8d6e63; max-width:320px; width:80%; box-shadow:5px 5px 0px #8d6e63;">
+            <p id="modalMessage" style="font-size: 1.3rem; margin-bottom: 20px; color: #5d4037;"></p>
+            <button id="closeModalBtn" onclick="closeModal()" style="background: #8d6e63; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer;">OK</button>
+        </div>
+    </div>
+
+    <!-- Owl Interactive Effect Widget -->
+    <div id="owl-container">
+      <div id="owl-icon" onclick="activateOwlEffect()">🦉</div>
+      <audio id="owl-audio" src="theme.mp3" preload="auto"></audio>
+    </div>
+
+<style>
+  #owl-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; }
+  #owl-icon { font-size: 60px; cursor: pointer; user-select: none; transition: transform 0.3s ease; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2)); }
+  #owl-icon:hover { transform: scale(1.15); }
+  @keyframes enlargeAndShrinkTwice {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.6); }
+    50% { transform: scale(1); }
+    75% { transform: scale(1.6); }
+    100% { transform: scale(1); }
+  }
+  .active-effect { animation: enlargeAndShrinkTwice 2s ease-in-out forwards; }
+</style>
+
+<script>
+  function activateOwlEffect() {
+    const container = document.getElementById('owl-container');
+    const audio = document.getElementById('owl-audio');
+    if (container.classList.contains('active-effect')) return;
+    audio.currentTime = 0;
+    audio.play().catch(error => {
+      console.log("Audio playback blocked or file not found:", error);
+    });
+    container.classList.add('active-effect');
+    setTimeout(() => {
+      container.classList.remove('active-effect');
+    }, 2000);
+  }
+</script>        
+
+
+    
+    
+    <!-- Core Application & Guard Logic Modules -->
+    <script type="module" src="app.js"></script>
+    <script type="module" src="guard-logic.js"></script>
+</body>
+</html>

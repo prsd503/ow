@@ -21,6 +21,34 @@
         .close { color: #5d4037; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
         .back-link { display: inline-block; margin-top: 15px; color: #8d6e63; text-decoration: underline; font-size: 1.2rem; }
         .section-title { font-size: 1.1rem; font-weight: bold; margin-top: 10px; margin-bottom: 5px; color: #4e342e; text-align: left; margin-left: 7.5%; font-family: system-ui, -apple-system, sans-serif; }
+        
+        /* Styling for the info note section */
+        .admin-note-box {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 0.9rem;
+            color: #555;
+            background: #f9f6f0;
+            border: 1px dashed #8d6e63;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 20px auto 10px auto;
+            width: 85%;
+            box-sizing: border-box;
+            text-align: left;
+            line-height: 1.4;
+        }
+        .whatsapp-contact-btn {
+            display: inline-block;
+            margin-top: 8px;
+            background-color: #25d366;
+            color: white;
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -43,6 +71,12 @@
 
             <button type="submit" id="submitBtn" style="display:none; margin-top: 15px;">Submit Entry</button>
         </form>
+
+        <!-- Informational Note with WhatsApp Contact Link -->
+        <div class="admin-note-box">
+            ⚠️ <b>Note:</b> If you need to edit details kindly contact society admin. If tenant changed or owner changed kindly inform society admin as well by clicking below contact button.<br>
+            <a id="adminWhatsAppLink" href="https://wa.me/919033406816" target="_blank" class="whatsapp-contact-btn">💬 Contact Admin on WhatsApp</a>
+        </div>
         
         <a href="index.html" class="back-link">Back to Home</a>
     </div>
@@ -82,7 +116,29 @@
 
         let societyData = {};
 
+        // Fetch dynamic configuration team phone number for WhatsApp link
+        async function updateContactUsWhatsAppLink() {
+            try {
+                let owlWatcherTeamPhone = "919033406816";
+                const configDoc = await getDoc(doc(db, "configs", "owlwatcher"));
+                if (configDoc.exists()) {
+                    const data = configDoc.data();
+                    if (data.teamPhone) {
+                        owlWatcherTeamPhone = data.teamPhone.replace(/\D/g, '');
+                    }
+                }
+                const whatsappLinkElem = document.getElementById('adminWhatsAppLink');
+                if (whatsappLinkElem) {
+                    whatsappLinkElem.href = `https://wa.me/${owlWatcherTeamPhone}?text=Hello%20Admin,%20I%20need%20assistance%20regarding%20my%20society%20details.`;
+                }
+            } catch (err) {
+                console.error("Failed to fetch dynamic master admin phone, using fallback.", err);
+            }
+        }
+
         async function initPage() {
+            await updateContactUsWhatsAppLink();
+
             if (!societyId) {
                 showModal("⚠️ No society selected. Redirecting...");
                 setTimeout(() => window.location.href = "index.html", 2000);

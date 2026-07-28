@@ -952,3 +952,4 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.readAsText(file);
         };
     });
+    });

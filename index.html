@@ -591,6 +591,9 @@ body { padding-top: 80px; }
             startGlobalAdTimer();
         });
 
+        document.getElementById("addVehiclePageBtn").href = `entry.html?societyId=${societyId}`;
+
+
         function showSearchScreen(societyName, societyId) {
             currentSociety = societyName;
             document.getElementById("society-verification").style.display = "none";
@@ -726,7 +729,6 @@ body { padding-top: 80px; }
         });
 
 
-document.getElementById("addVehiclePageBtn").href = `entry.html?societyId=${societyId}`;
 
         
     </script>

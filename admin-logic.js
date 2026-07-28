@@ -941,7 +941,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         await batch.commit();
                     }
 
-                    window.showModal(`Targeted Bulk Delete complete! Deleted: ${deleteCount}, Not Found: ${notFoundCount}`);
+                 window.showModal(`Targeted Bulk Delete complete! Deleted: ${deleteCount}, Not Found: ${notFoundCount}`);
                     window.closeModal();
                     if (document.getElementById('admin-results')) document.getElementById('admin-results').innerHTML = "";
                 } catch (err) {

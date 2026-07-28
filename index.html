@@ -600,7 +600,8 @@ body { padding-top: 80px; }
             document.getElementById("displaySocietyName").innerText = currentSociety;
 
             document.getElementById("factlityPage").href = "facility.html";
-            
+            document.getElementById("addVehiclePageBtn").href = `entry.html?societyId=${societyId}`;
+
             updateAdLinks(societyName);
 
             if (globalAdInterval) clearInterval(globalAdInterval);

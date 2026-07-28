@@ -392,6 +392,80 @@ document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => 
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    async function loadSocietyLimits() {
+        if (!assignedSociety) return;
+        try {
+            const societyDoc = await getDoc(doc(db, "societies", assignedSociety));
+            if (societyDoc.exists()) {
+                const data = societyDoc.data();
+                if (document.getElementById('max4WheelerInput')) {
+                    document.getElementById('max4WheelerInput').value = data.max4Wheeler !== undefined ? data.max4Wheeler : 1;
+                }
+                if (document.getElementById('max2WheelerInput')) {
+                    document.getElementById('max2WheelerInput').value = data.max2Wheeler !== undefined ? data.max2Wheeler : 2;
+                }
+            }
+        } catch (err) {
+            console.error("Failed to load society limits:", err);
+        }
+    }
+
+    document.getElementById('saveSocietyLimitsBtn')?.addEventListener('click', async () => {
+        const max4W = parseInt(document.getElementById('max4WheelerInput').value, 10);
+        const max2W = parseInt(document.getElementById('max2WheelerInput').value, 10);
+
+        if (isNaN(max4W) || isNaN(max2W)) {
+            return window.showModal("Please enter valid numbers for vehicle limits.");
+        }
+
+        try {
+            await setDoc(doc(db, "societies", assignedSociety), {
+                max4Wheeler: max4W,
+                max2Wheeler: max2W,
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+
+            window.showModal("Society vehicle allowance limits updated successfully!");
+        } catch (err) {
+            console.error("Error saving limits:", err);
+            window.showModal("Failed to save limits.");
+        }
+    });
+    async function loadFlatNumbers() {
+        if (!assignedSociety) return;
+        try {
+            const flatDocRef = doc(db, "societies", assignedSociety);
+            const docSnap = await getDoc(flatDocRef);
+            if (docSnap.exists() && docSnap.data().flatList) {
+                const flatsArray = docSnap.data().flatList;
+                const textarea = document.getElementById('flatsInput');
+                if (textarea) {
+                    textarea.value = flatsArray.join(', ');
+                }
+            }
+        } catch (err) {
+            console.error("Failed to load flat numbers:", err);
+        }
+    }
+
+    document.getElementById('saveFlatsBtn')?.addEventListener('click', async () => {
+        const rawText = document.getElementById('flatsInput').value;
+        // Split by comma, trim whitespace, and filter out empty strings
+        const flatList = rawText.split(',').map(f => f.trim()).filter(f => f.length > 0);
+
+        try {
+            await setDoc(doc(db, "societies", assignedSociety), {
+                flatList: flatList,
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+
+            window.showModal("Flat numbers updated successfully!");
+        } catch (err) {
+            console.error("Error saving flat numbers:", err);
+            window.showModal("Failed to save flat numbers.");
+        }
+    });
+
     document.getElementById('masterSaveSocietyBtn')?.addEventListener('click', async () => {
         const newSociety = document.getElementById('masterSocietyInput').value.trim();
         if (!newSociety) return window.showModal("Please enter a valid society name.");

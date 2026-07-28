@@ -894,7 +894,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.getElementById('bulkDeleteBtn')?.addEventListener('click', () => {
+  document.getElementById('bulkDeleteBtn')?.addEventListener('click', () => {
         const file = document.getElementById('excelInput').files[0];
         if (!file) return window.showModal("Please select a CSV file containing vehicles to delete.");
 
@@ -941,7 +941,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         await batch.commit();
                     }
 
-                 window.showModal(`Targeted Bulk Delete complete! Deleted: ${deleteCount}, Not Found: ${notFoundCount}`);
+                    window.showModal(`Targeted Bulk Delete complete! Deleted: ${deleteCount}, Not Found: ${notFoundCount}`);
                     window.closeModal();
                     if (document.getElementById('admin-results')) document.getElementById('admin-results').innerHTML = "";
                 } catch (err) {
@@ -952,4 +952,4 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.readAsText(file);
         };
     });
-    });
+});

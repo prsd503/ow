@@ -9,12 +9,19 @@
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { max-width: 450px; margin: 40px auto; background: #ffffff; padding: 30px; border: 2px solid #8d6e63; border-radius: 20px; box-shadow: 4px 4px 0px #5d4037; }
         input, select { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 15px; font-family: 'Caveat', cursive; background: #fff; box-sizing: border-box; }
+        
+        /* Sans-serif style specifically applied to mobile and vehicle input fields */
+        .sans-input { 
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important; 
+            text-transform: uppercase; 
+        }
+
         button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.3rem; font-family: 'Caveat', cursive; box-shadow: 2px 2px 0px #5d4037; }
         .modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: #fff; margin: 15% auto; padding: 20px; border: 2px solid #8d6e63; width: 80%; max-width: 320px; border-radius: 20px; }
+        .modal-content { background-color: #fff; margin: 15% auto; padding: 20px; border: 2px solid #8d6e63; width: 80%; max-width: 320px; border-radius: 20px; font-family: system-ui, -apple-system, sans-serif; }
         .close { color: #5d4037; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
         .back-link { display: inline-block; margin-top: 15px; color: #8d6e63; text-decoration: underline; font-size: 1.2rem; }
-        .section-title { font-size: 1.3rem; font-weight: bold; margin-top: 10px; margin-bottom: 5px; color: #4e342e; text-align: left; margin-left: 7.5%; }
+        .section-title { font-size: 1.1rem; font-weight: bold; margin-top: 10px; margin-bottom: 5px; color: #4e342e; text-align: left; margin-left: 7.5%; font-family: system-ui, -apple-system, sans-serif; }
     </style>
 </head>
 <body>
@@ -28,14 +35,14 @@
                 <option value="">Select Flat Number/Name</option>
             </select>
             
-<div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-    <input type="tel" id="mobileNumber" placeholder="Mobile Number" required style="font-family: inherit; font-size: 1rem; padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box;">
-    
-    <!-- Dynamic Container for Allowed Vehicle Input Fields -->
-    <div id="dynamicVehicleFields" style="margin-top: 10px;"></div>
-</div>
+            <div style="width: 85%; margin: 0 auto;">
+                <input type="tel" id="mobileNumber" placeholder="Mobile Number" required class="sans-input" style="width: 100%; font-size: 1rem; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; box-sizing: border-box; margin-bottom: 15px;">
+                
+                <!-- Dynamic Container for Allowed Vehicle Input Fields -->
+                <div id="dynamicVehicleFields" style="text-align: left;"></div>
+            </div>
 
-            <button type="submit" id="submitBtn" style="display:none;">Submit Entry</button>
+            <button type="submit" id="submitBtn" style="display:none; margin-top: 15px;">Submit Entry</button>
         </form>
         
         <a href="index.html" class="back-link">Back to Home</a>
@@ -132,9 +139,33 @@
             const allowed2WInputs = Math.max(0, max2W - registered2W);
 
             if (allowed4WInputs === 0 && allowed2WInputs === 0) {
-                container.innerHTML = `<p style="color: #d32f2f; font-weight: bold;">⚠️ Vehicle limit already reached for flat ${flatNumber}!</p>`;
+                container.innerHTML = `<p style="color: #d32f2f; font-weight: bold; text-align: center; font-family: system-ui, sans-serif;">⚠️ Vehicle limit already reached for flat ${flatNumber}!</p>`;
                 return;
             }
+
+            // Helper function to create styled inputs ensuring Sans-Serif & Uppercase text
+            const createVehicleInput = (type, placeholderText, index) => {
+                const input = document.createElement("input");
+                input.type = "text";
+                input.className = "dynamic-vehicle-input sans-input";
+                input.dataset.type = type;
+                input.placeholder = placeholderText;
+                input.required = true;
+                input.style.width = "100%";
+                input.style.fontSize = "1rem";
+                input.style.padding = "10px";
+                input.style.border = "2px solid #8d6e63";
+                input.style.borderRadius = "10px";
+                input.style.boxSizing = "border-box";
+                input.style.marginBottom = "10px";
+                
+                // Force characters to uppercase automatically as user types
+                input.addEventListener("input", (event) => {
+                    event.target.value = event.target.value.toUpperCase();
+                });
+
+                return input;
+            };
 
             if (allowed4WInputs > 0) {
                 const title4 = document.createElement("div");
@@ -143,13 +174,7 @@
                 container.appendChild(title4);
 
                 for (let i = 0; i < allowed4WInputs; i++) {
-                    const input = document.createElement("input");
-                    input.type = "text";
-                    input.className = "dynamic-vehicle-input";
-                    input.dataset.type = "4-Wheeler";
-                    input.placeholder = `4-Wheeler Number #${i + 1} (e.g. GJ01AB1234)`;
-                    input.required = true;
-                    container.appendChild(input);
+                    container.appendChild(createVehicleInput("4-Wheeler", `4-Wheeler Number #${i + 1} (e.g. GJ01AB1234)`, i));
                 }
             }
 
@@ -160,13 +185,7 @@
                 container.appendChild(title2);
 
                 for (let i = 0; i < allowed2WInputs; i++) {
-                    const input = document.createElement("input");
-                    input.type = "text";
-                    input.className = "dynamic-vehicle-input";
-                    input.dataset.type = "2-Wheeler";
-                    input.placeholder = `2-Wheeler Number #${i + 1} (e.g. GJ01XY5678)`;
-                    input.required = true;
-                    container.appendChild(input);
+                    container.appendChild(createVehicleInput("2-Wheeler", `2-Wheeler Number #${i + 1} (e.g. GJ01XY5678)`, i));
                 }
             }
 

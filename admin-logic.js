@@ -10,6 +10,27 @@ let pendingDeleteId = null;
 let teamPhone = "919033406816";
 let isMasterAdminUser = false;
 
+<!-- Add this section inside the <style> tag or CSS file -->
+<style>
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255,255,255,.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+</style>
+
+
 // --- UI & Global Helpers ---
 window.showModal = (msg, showConfirm = false) => {
     document.getElementById('modalMessage').innerText = msg;
@@ -186,6 +207,83 @@ document.getElementById('deleteGuardBtn')?.addEventListener('click', async () =>
         window.showModal("Failed to delete guard record.");
     }
 });
+
+// Replace the form submit event listener block with this updated version
+
+document.getElementById("vehicleForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const submitBtn = e.target.querySelector("button[type='submit']");
+    const originalBtnText = submitBtn.innerHTML;
+    
+    // Disable button and show loading spinner
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<div class="loading-spinner"></div> Registering...';
+
+    const flatNumber = document.getElementById("flatSelect").value;
+    const vehicleNumber = document.getElementById("vehicleNumber").value.trim().toUpperCase();
+    const mobileNumber = document.getElementById("mobileNumber").value.trim();
+    const vehicleType = document.getElementById("vehicleType").value;
+    const targetSociety = societyData.name || societyId;
+
+    const vehiclesRef = collection(db, "vehicles");
+    
+    try {
+        // 1. Verify Duplicate Entry
+        const q = query(vehiclesRef, where("societyName", "==", targetSociety), where("vehicleNumber", "==", vehicleNumber));
+        const existingSnap = await getDocs(q);
+
+        if (!existingSnap.empty) {
+            showModal("<p>❌ <b>Duplicate Entry</b><br>This vehicle number is already registered for this society.</p>");
+            return;
+        }
+
+        // 2. Enforce Specific Limits
+        const flatVehiclesQuery = query(vehiclesRef, where("societyName", "==", targetSociety), where("flatNumber", "==", flatNumber));
+        const flatVehiclesSnap = await getDocs(flatVehiclesQuery);
+
+        let current4WheelerCount = 0;
+        let current2WheelerCount = 0;
+
+        flatVehiclesSnap.forEach(docSnap => {
+            const data = docSnap.data();
+            if (data.vehicleType === "4-Wheeler") current4WheelerCount++;
+            if (data.vehicleType === "2-Wheeler") current2WheelerCount++;
+        });
+
+        const max4Wheeler = societyData.max4Wheeler !== undefined ? societyData.max4Wheeler : 1;
+        const max2Wheeler = societyData.max2Wheeler !== undefined ? societyData.max2Wheeler : 2;
+
+        if (vehicleType === "4-Wheeler" && current4WheelerCount >= max4Wheeler) {
+            showModal(`<p>⚠️ Limit Reached! Only <b>${max4Wheeler}</b> Four-Wheeler(s) are allowed per flat.</p>`);
+            return;
+        }
+
+        if (vehicleType === "2-Wheeler" && current2WheelerCount >= max2Wheeler) {
+            showModal(`<p>⚠️ Limit Reached! Only <b>${max2Wheeler}</b> Two-Wheeler(s) are allowed per flat.</p>`);
+            return;
+        }
+
+        // 3. Save to Firestore
+        await addDoc(vehiclesRef, {
+            societyName: targetSociety,
+            flatNumber: flatNumber,
+            vehicleNumber: vehicleNumber,
+            mobileNumber: mobileNumber,
+            vehicleType: vehicleType,
+            timestamp: new Date()
+        });
+        showModal("<p>✅ Vehicle registered successfully!</p>");
+        setTimeout(() => window.location.href = "index.html", 1500);
+    } catch (err) {
+        console.error(err);
+        showModal("<p>❌ Error saving entry. Try again.</p>");
+    } finally {
+        // Restore button state
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+    }
+});
+
 
 // --- Vehicle Search Logic ---
 document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {

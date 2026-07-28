@@ -9,10 +9,8 @@
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { max-width: 450px; margin: 40px auto; background: #ffffff; padding: 30px; border: 2px solid #8d6e63; border-radius: 20px; box-shadow: 4px 4px 0px #5d4037; }
         
-        /* General inputs/selects use Caveat by default, except specified ones */
         input, select { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 15px; font-family: 'Caveat', cursive; background: #fff; box-sizing: border-box; }
         
-        /* Sans-serif style applied to flat selection, mobile number, and vehicle inputs */
         .sans-input { 
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important; 
         }
@@ -32,13 +30,12 @@
         <p>Society: <b id="societyNameLabel">Loading...</b></p>
         
         <form id="vehicleForm">
-            <!-- Flat Select Dropdown with Sans-Serif Font -->
             <select id="flatSelect" class="sans-input" required>
                 <option value="">Select Flat Number/Name</option>
             </select>
             
             <div style="width: 85%; margin: 0 auto;">
-                <input type="tel" id="mobileNumber" placeholder="Mobile Number" required class="sans-input" style="width: 100%; font-size: 1rem; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; box-sizing: border-box; margin-bottom: 15px;">
+                <input type="tel" id="mobileNumber" placeholder="Mobile Number (10 digits)" maxlength="10" required class="sans-input" style="width: 100%; font-size: 1rem; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; box-sizing: border-box; margin-bottom: 15px;">
                 
                 <!-- Dynamic Container for Allowed Vehicle Input Fields -->
                 <div id="dynamicVehicleFields" style="text-align: left;"></div>
@@ -145,13 +142,13 @@
                 return;
             }
 
-            // Helper function to create inputs with Sans-Serif font and Capital Letters
             const createVehicleInput = (type, placeholderText, index) => {
                 const input = document.createElement("input");
                 input.type = "text";
                 input.className = "dynamic-vehicle-input sans-input";
                 input.dataset.type = type;
                 input.placeholder = placeholderText;
+                input.maxLength = 10;
                 input.required = true;
                 input.style.width = "100%";
                 input.style.fontSize = "1rem";
@@ -162,7 +159,6 @@
                 input.style.marginBottom = "10px";
                 input.style.textTransform = "uppercase";
                 
-                // Force characters to uppercase automatically as user types
                 input.addEventListener("input", (event) => {
                     event.target.value = event.target.value.toUpperCase();
                 });
@@ -177,7 +173,7 @@
                 container.appendChild(title4);
 
                 for (let i = 0; i < allowed4WInputs; i++) {
-                    container.appendChild(createVehicleInput("4-Wheeler", `4-Wheeler Number #${i + 1} (e.g. GJ01AB1234)`, i));
+                    container.appendChild(createVehicleInput("4-Wheeler", `4-Wheeler Number #${i + 1} (10 characters)`, i));
                 }
             }
 
@@ -188,7 +184,7 @@
                 container.appendChild(title2);
 
                 for (let i = 0; i < allowed2WInputs; i++) {
-                    container.appendChild(createVehicleInput("2-Wheeler", `2-Wheeler Number #${i + 1} (e.g. GJ01XY5678)`, i));
+                    container.appendChild(createVehicleInput("2-Wheeler", `2-Wheeler Number #${i + 1} (10 characters)`, i));
                 }
             }
 
@@ -202,9 +198,24 @@
             const targetSociety = societyData.name || societyId;
             const vehicleInputs = document.querySelectorAll(".dynamic-vehicle-input");
 
+            // Validate Mobile Number Length
+            if (mobileNumber.length !== 10) {
+                showModal("<p>⚠️ Mobile number must be exactly 10 digits long.</p>");
+                return;
+            }
+
             if (vehicleInputs.length === 0) {
                 showModal("<p>⚠️ No vehicle slots available to register.</p>");
                 return;
+            }
+
+            // Validate Vehicle Numbers Length
+            for (let input of vehicleInputs) {
+                const vNum = input.value.trim().toUpperCase();
+                if (vNum.length !== 10) {
+                    showModal(`<p>⚠️ All vehicle numbers must be exactly 10 characters long.<br><b>"${vNum}"</b> is invalid.</p>`);
+                    return;
+                }
             }
 
             const vehiclesRef = collection(db, "vehicles");

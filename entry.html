@@ -58,8 +58,16 @@
         <p>Society: <b id="societyNameLabel">Loading...</b></p>
         
         <form id="vehicleForm">
+            <!-- Flat Select Dropdown -->
             <select id="flatSelect" class="sans-input" required>
                 <option value="">Select Flat Number/Name</option>
+            </select>
+
+            <!-- Resident Type Dropdown (Owner / Tenant) -->
+            <select id="residentTypeSelect" class="sans-input" required>
+                <option value="">Select Resident Type</option>
+                <option value="Owner">Owner</option>
+                <option value="Tenant">Tenant</option>
             </select>
             
             <div style="width: 85%; margin: 0 auto;">
@@ -74,7 +82,7 @@
 
         <!-- Informational Note with WhatsApp Contact Link -->
         <div class="admin-note-box">
-            ⚠️ <b>Note:</b> If you need to edit details kindly contact society admin. If tenant or owner changed kindly inform society admin as well by clicking below contact button.<br>
+            ⚠️ <b>Note:</b> If you need to edit details kindly contact society admin. If tenant changed or owner changed kindly inform society admin as well by clicking below contact button.<br>
             <a id="adminWhatsAppLink" href="https://wa.me/919033406816" target="_blank" class="whatsapp-contact-btn">💬 Contact Admin on WhatsApp</a>
         </div>
         
@@ -116,7 +124,6 @@
 
         let societyData = {};
 
-        // Fetch dynamic configuration team phone number for WhatsApp link
         async function updateContactUsWhatsAppLink() {
             try {
                 let owlWatcherTeamPhone = "919033406816";
@@ -250,6 +257,7 @@
         document.getElementById("vehicleForm").addEventListener("submit", async (e) => {
             e.preventDefault();
             const flatNumber = document.getElementById("flatSelect").value;
+            const residentType = document.getElementById("residentTypeSelect").value;
             const mobileNumber = document.getElementById("mobileNumber").value.trim();
             const targetSociety = societyData.name || societyId;
             const vehicleInputs = document.querySelectorAll(".dynamic-vehicle-input");
@@ -297,6 +305,7 @@
                     await addDoc(vehiclesRef, {
                         societyName: targetSociety,
                         flatNumber: flatNumber,
+                        residentType: residentType,
                         vehicleNumber: vNum,
                         mobileNumber: mobileNumber,
                         vehicleType: vType,

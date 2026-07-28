@@ -10,25 +10,7 @@ let pendingDeleteId = null;
 let teamPhone = "919033406816";
 let isMasterAdminUser = false;
 
-<!-- Add this section inside the <style> tag or CSS file -->
-<style>
-    .loading-spinner {
-        display: inline-block;
-        width: 20px;
-        height: 20px;
-        border: 3px solid rgba(255,255,255,.3);
-        border-radius: 50%;
-        border-top-color: #fff;
-        animation: spin 1s ease-in-out infinite;
-    }
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-    button:disabled {
-        opacity: 0.7;
-        cursor: not-allowed;
-    }
-</style>
+
 
 
 // --- UI & Global Helpers ---

@@ -501,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    async function loadNoticeData() {
+async function loadNoticeData() {
         if (!assignedSociety) return;
         const noticeDocRef = doc(db, "notices", assignedSociety);
         const docSnap = await getDoc(noticeDocRef);

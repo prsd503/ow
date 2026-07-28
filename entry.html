@@ -7,13 +7,14 @@
     <title>Owl Watcher | Add Vehicle</title>
     <style>
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
-        .card { max-width: 400px; margin: 40px auto; background: #ffffff; padding: 30px; border: 2px solid #8d6e63; border-radius: 20px; box-shadow: 4px 4px 0px #5d4037; }
-        input, select { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 15px; font-family: 'Caveat', cursive; background: #fff; }
+        .card { max-width: 450px; margin: 40px auto; background: #ffffff; padding: 30px; border: 2px solid #8d6e63; border-radius: 20px; box-shadow: 4px 4px 0px #5d4037; }
+        input, select { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 15px; font-family: 'Caveat', cursive; background: #fff; box-sizing: border-box; }
         button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.3rem; font-family: 'Caveat', cursive; box-shadow: 2px 2px 0px #5d4037; }
         .modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
         .modal-content { background-color: #fff; margin: 15% auto; padding: 20px; border: 2px solid #8d6e63; width: 80%; max-width: 320px; border-radius: 20px; }
         .close { color: #5d4037; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
         .back-link { display: inline-block; margin-top: 15px; color: #8d6e63; text-decoration: underline; font-size: 1.2rem; }
+        .section-title { font-size: 1.3rem; font-weight: bold; margin-top: 10px; margin-bottom: 5px; color: #4e342e; text-align: left; margin-left: 7.5%; }
     </style>
 </head>
 <body>
@@ -26,18 +27,13 @@
             <select id="flatSelect" required>
                 <option value="">Select Flat Number/Name</option>
             </select>
-            <br>
-            <input type="text" id="vehicleNumber" placeholder="Vehicle Number (e.g., GJ01AB1234)" required>
-            <br>
+            
             <input type="tel" id="mobileNumber" placeholder="Mobile Number" required>
-            <br>
-            <select id="vehicleType" required>
-                <option value="2-Wheeler">2-Wheeler</option>
-                <option value="3-Wheeler">3-Wheeler</option>
-                <option value="4-Wheeler">4-Wheeler</option>
-            </select>
-            <br>
-            <button type="submit">Submit Entry</button>
+            
+            <!-- Dynamic Container for Allowed Vehicle Input Fields -->
+            <div id="dynamicVehicleFields"></div>
+
+            <button type="submit" id="submitBtn" style="display:none;">Submit Entry</button>
         </form>
         
         <a href="index.html" class="back-link">Back to Home</a>
@@ -90,7 +86,6 @@
                 societyData = socDoc.data();
                 document.getElementById("societyNameLabel").innerText = societyData.name || "Unknown";
 
-                // Populate Flat Dropdown from Admin-defined flatList array
                 const flatSelect = document.getElementById("flatSelect");
                 if (societyData.flatList && Array.isArray(societyData.flatList)) {
                     societyData.flatList.forEach(flat => {
@@ -105,67 +100,130 @@
 
         initPage();
 
+        // When a flat is selected, calculate remaining allowances and generate input boxes dynamically
+        document.getElementById("flatSelect").addEventListener("change", async (e) => {
+            const flatNumber = e.target.value;
+            const container = document.getElementById("dynamicVehicleFields");
+            const submitBtn = document.getElementById("submitBtn");
+            container.innerHTML = "";
+            submitBtn.style.display = "none";
+
+            if (!flatNumber) return;
+
+            const targetSociety = societyData.name || societyId;
+            const max4W = societyData.max4Wheeler !== undefined ? societyData.max4Wheeler : 1;
+            const max2W = societyData.max2Wheeler !== undefined ? societyData.max2Wheeler : 2;
+
+            // Fetch already registered vehicles for this flat
+            const vehiclesRef = collection(db, "vehicles");
+            const flatQuery = query(vehiclesRef, where("societyName", "==", targetSociety), where("flatNumber", "==", flatNumber));
+            const flatSnap = await getDocs(flatQuery);
+
+            let registered4W = 0;
+            let registered2W = 0;
+
+            flatSnap.forEach(docSnap => {
+                const data = docSnap.data();
+                if (data.vehicleType === "4-Wheeler") registered4W++;
+                if (data.vehicleType === "2-Wheeler") registered2W++;
+            });
+
+            const allowed4WInputs = Math.max(0, max4W - registered4W);
+            const allowed2WInputs = Math.max(0, max2W - registered2W);
+
+            if (allowed4WInputs === 0 && allowed2WInputs === 0) {
+                container.innerHTML = `<p style="color: #d32f2f; font-weight: bold;">⚠️ Vehicle limit already reached for flat ${flatNumber}!</p>`;
+                return;
+            }
+
+            // Generate 4-Wheeler Fields
+            if (allowed4WInputs > 0) {
+                const title4 = document.createElement("div");
+                title4.className = "section-title";
+                title4.innerText = `Four-Wheeler(s) (${allowed4WInputs} slot(s) left)`;
+                container.appendChild(title4);
+
+                for (let i = 0; i < allowed4WInputs; i++) {
+                    const input = document.createElement("input");
+                    input.type = "text";
+                    input.className = "dynamic-vehicle-input";
+                    input.dataset.type = "4-Wheeler";
+                    input.placeholder = `4-Wheeler Number #${i + 1} (e.g. GJ01AB1234)`;
+                    input.required = true;
+                    container.appendChild(input);
+                }
+            }
+
+            // Generate 2-Wheeler Fields
+            if (allowed2WInputs > 0) {
+                const title2 = document.createElement("div");
+                title2.className = "section-title";
+                title2.innerText = `Two-Wheeler(s) (${allowed2WInputs} slot(s) left)`;
+                container.appendChild(title2);
+
+                for (let i = 0; i < allowed2WInputs; i++) {
+                    const input = document.createElement("input");
+                    input.type = "text";
+                    input.className = "dynamic-vehicle-input";
+                    input.dataset.type = "2-Wheeler";
+                    input.placeholder = `2-Wheeler Number #${i + 1} (e.g. GJ01XY5678)`;
+                    input.required = true;
+                    container.appendChild(input);
+                }
+            }
+
+            submitBtn.style.display = "inline-block";
+        });
+
         document.getElementById("vehicleForm").addEventListener("submit", async (e) => {
             e.preventDefault();
             const flatNumber = document.getElementById("flatSelect").value;
-            const vehicleNumber = document.getElementById("vehicleNumber").value.trim().toUpperCase();
             const mobileNumber = document.getElementById("mobileNumber").value.trim();
-            const vehicleType = document.getElementById("vehicleType").value;
             const targetSociety = societyData.name || societyId;
+            const vehicleInputs = document.querySelectorAll(".dynamic-vehicle-input");
+
+            if (vehicleInputs.length === 0) {
+                showModal("<p>⚠️ No vehicle slots available to register.</p>");
+                return;
+            }
 
             const vehiclesRef = collection(db, "vehicles");
-            
+
             try {
-                // 1. Verify Duplicate Entry
-                const q = query(vehiclesRef, where("societyName", "==", targetSociety), where("vehicleNumber", "==", vehicleNumber));
-                const existingSnap = await getDocs(q);
+                // Validate all entered vehicle numbers for duplicates first
+                for (let input of vehicleInputs) {
+                    const vNum = input.value.trim().toUpperCase();
+                    if (!vNum) continue;
 
-                if (!existingSnap.empty) {
-                    showModal("<p>❌ <b>Duplicate Entry</b><br>This vehicle number is already registered for this society.</p>");
-                    return;
+                    const q = query(vehiclesRef, where("societyName", "==", targetSociety), where("vehicleNumber", ==, vNum));
+                    const existingSnap = await getDocs(q);
+                    if (!existingSnap.empty) {
+                        showModal(`<p>❌ <b>Duplicate Entry</b><br>Vehicle number <b>${vNum}</b> is already registered.</p>`);
+                        return;
+                    }
                 }
 
-                // 2. Fetch current counts for this flat to enforce allowance limits
-                const flatVehiclesQuery = query(vehiclesRef, where("societyName", "==", targetSociety), where("flatNumber", "==", flatNumber));
-                const flatVehiclesSnap = await getDocs(flatVehiclesQuery);
+                // Save all valid inputs to Firestore
+                for (let input of vehicleInputs) {
+                    const vNum = input.value.trim().toUpperCase();
+                    const vType = input.dataset.type;
+                    if (!vNum) continue;
 
-                let current4WheelerCount = 0;
-                let current2WheelerCount = 0;
-
-                flatVehiclesSnap.forEach(docSnap => {
-                    const data = docSnap.data();
-                    if (data.vehicleType === "4-Wheeler") current4WheelerCount++;
-                    if (data.vehicleType === "2-Wheeler") current2WheelerCount++;
-                });
-
-                const max4Wheeler = societyData.max4Wheeler !== undefined ? societyData.max4Wheeler : 1;
-                const max2Wheeler = societyData.max2Wheeler !== undefined ? societyData.max2Wheeler : 2;
-
-                if (vehicleType === "4-Wheeler" && current4WheelerCount >= max4Wheeler) {
-                    showModal(`<p>⚠️ Limit Reached! Only <b>${max4Wheeler}</b> Four-Wheeler(s) are allowed per flat.</p>`);
-                    return;
+                    await addDoc(vehiclesRef, {
+                        societyName: targetSociety,
+                        flatNumber: flatNumber,
+                        vehicleNumber: vNum,
+                        mobileNumber: mobileNumber,
+                        vehicleType: vType,
+                        timestamp: new Date()
+                    });
                 }
-
-                if (vehicleType === "2-Wheeler" && current2WheelerCount >= max2Wheeler) {
-                    showModal(`<p>⚠️ Limit Reached! Only <b>${max2Wheeler}</b> Two-Wheeler(s) are allowed per flat.</p>`);
-                    return;
-                }
-
-                // 3. Save to Firestore
-                await addDoc(vehiclesRef, {
-                    societyName: targetSociety,
-                    flatNumber: flatNumber,
-                    vehicleNumber: vehicleNumber,
-                    mobileNumber: mobileNumber,
-                    vehicleType: vehicleType,
-                    timestamp: new Date()
-                });
                 
-                showModal("<p>✅ Vehicle registered successfully!</p>");
+                showModal("<p>✅ Vehicle(s) registered successfully!</p>");
                 setTimeout(() => window.location.href = "index.html", 1500);
             } catch (err) {
                 console.error(err);
-                showModal("<p>❌ Error saving entry. Try again.</p>");
+                showModal("<p>❌ Error saving entries. Try again.</p>");
             }
         });
     </script>

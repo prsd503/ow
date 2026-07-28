@@ -196,6 +196,7 @@ if (vehicleForm) {
 
         const flatNumber = document.getElementById("flatSelect").value;
         const vehicleNumber = document.getElementById("vehicleNumber").value.trim().toUpperCase();
+        const residentType = document.getElementById("residentTypeSelect")?.value || "Owner";
         const mobileNumber = document.getElementById("mobileNumber").value.trim();
         const vehicleType = document.getElementById("vehicleType").value;
         const targetSociety = societyData.name || societyId;
@@ -239,6 +240,7 @@ if (vehicleForm) {
             await addDoc(vehiclesRef, {
                 societyName: targetSociety,
                 flatNumber: flatNumber,
+                residentType: residentType,
                 vehicleNumber: vehicleNumber,
                 mobileNumber: mobileNumber,
                 vehicleType: vehicleType,
@@ -290,7 +292,8 @@ document.getElementById('adminSearchBtn')?.addEventListener('click', async () =>
                     <b>Vehicle:</b> ${data.vehicleNumber}<br>
                     <b>Vehicle Type:</b> ${data.vehicleType}<br>
                     <b>Flat/Name:</b> ${data.flatNumber}<br>
-                   <b> Call:</b> <a href="tel:${data.mobileNumber}" style="color: #0066cc; text-decoration: none;">${data.mobileNumber}</a><br><br>
+                    <b>Resident Type:</b> ${data.residentType || 'N/A'}<br>
+                    <b>Call:</b> <a href="tel:${data.mobileNumber}" style="color: #0066cc; text-decoration: none;">${data.mobileNumber}</a><br><br>
                     <button onclick="window.deleteVehicleDoc('${docSnap.id}')" style="background:#d32f2f; color: white; border: none; border-radius: 4px; font-size:0.9rem; padding:5px 10px; cursor: pointer;">Delete</button>
                 </div>
             `;
@@ -303,6 +306,7 @@ document.getElementById('adminSearchBtn')?.addEventListener('click', async () =>
 document.getElementById('saveBtn')?.addEventListener('click', async () => {
     const vNum = document.getElementById('vNum').value.trim().toUpperCase();
     const fNum = document.getElementById('fNum').value.trim();
+    const rType = document.getElementById('rType').value;
     const mNum = document.getElementById('mNum').value.trim();
     const vType = document.getElementById('vType').value;
 
@@ -320,6 +324,7 @@ document.getElementById('saveBtn')?.addEventListener('click', async () => {
             const existingDocId = querySnapshot.docs[0].id;
             await setDoc(doc(db, "vehicles", existingDocId), {
                 flatNumber: fNum,
+                residentType: rType,
                 mobileNumber: mNum,
                 vehicleType: vType,
                 updatedAt: serverTimestamp()
@@ -330,6 +335,7 @@ document.getElementById('saveBtn')?.addEventListener('click', async () => {
             await addDoc(collection(db, "vehicles"), {
                 vehicleNumber: vNum,
                 flatNumber: fNum,
+                residentType: rType,
                 mobileNumber: mNum,
                 vehicleType: vType,
                 societyName: assignedSociety,
@@ -341,6 +347,7 @@ document.getElementById('saveBtn')?.addEventListener('click', async () => {
 
         document.getElementById('vNum').value = "";
         document.getElementById('fNum').value = "";
+        document.getElementById('rType').value = "";
         document.getElementById('mNum').value = "";
     } catch (err) {
         window.showModal("Failed to save vehicle.");
@@ -386,7 +393,7 @@ function getSelectedTimeString(idPrefix) {
 }
 
 document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
-    const csvContent = "VehicleNumber,FlatNumber/Name,MobileNumber,VehicleType\nKA01AB1234,101,9876543210,2W\n";
+    const csvContent = "VehicleNumber,FlatNumber/Name,ResidentType,MobileNumber,VehicleType\nKA01AB1234,101,Owner,9876543210,2W\n";
     window.downloadCSV(csvContent, "vehicle_template.csv");
 });
 
@@ -450,7 +457,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('saveFlatsBtn')?.addEventListener('click', async () => {
         const rawText = document.getElementById('flatsInput').value;
-        // Split by comma, trim whitespace, and filter out empty strings
         const flatList = rawText.split(',').map(f => f.trim()).filter(f => f.length > 0);
 
         try {
@@ -882,8 +888,9 @@ async function loadNoticeData() {
                     if (c.length >= 2 && c[0].trim()) {
                         const vNum = c[0].trim().toUpperCase();
                         const fNum = c[1].trim();
-                        const mNum = c[2] ? c[2].trim() : "";
-                        const vType = c[3] ? c[3].trim() : "2-Wheeler";
+                        const rType = c[2] ? c[2].trim() : "Owner";
+                        const mNum = c[3] ? c[3].trim() : "";
+                        const vType = c[4] ? c[4].trim() : "2-Wheeler";
 
                         const q = query(
                             collection(db, "vehicles"),
@@ -897,6 +904,7 @@ async function loadNoticeData() {
                             batch.set(newDocRef, {
                                 vehicleNumber: vNum,
                                 flatNumber: fNum,
+                                residentType: rType,
                                 mobileNumber: mNum,
                                 vehicleType: vType,
                                 societyName: assignedSociety,
@@ -942,10 +950,10 @@ async function loadNoticeData() {
             const snap = await getDocs(q);
             if (snap.empty) return window.showModal("No data to export.");
 
-            let csv = "VehicleNumber,FlatNumber/Name,MobileNumber,VehicleType\n";
+            let csv = "VehicleNumber,FlatNumber/Name,ResidentType,MobileNumber,VehicleType\n";
             snap.forEach(d => {
                 const data = d.data();
-                csv += `${data.vehicleNumber},${data.flatNumber},${data.mobileNumber},${data.vehicleType}\n`;
+                csv += `${data.vehicleNumber},${data.flatNumber},${data.residentType || 'Owner'},${data.mobileNumber},${data.vehicleType}\n`;
             });
 
             window.downloadCSV(csv, `${assignedSociety}_vehicles.csv`);

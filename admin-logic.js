@@ -191,8 +191,9 @@ document.getElementById('deleteGuardBtn')?.addEventListener('click', async () =>
 });
 
 // Replace the form submit event listener block with this updated version
-
-document.getElementById("vehicleForm").addEventListener("submit", async (e) => {
+const vehicleForm = document.getElementById("vehicleForm");
+if (vehicleForm) {
+    vehicleForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const submitBtn = e.target.querySelector("button[type='submit']");
     const originalBtnText = submitBtn.innerHTML;

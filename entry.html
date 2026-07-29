@@ -11,17 +11,19 @@
         
         input, select { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 15px; font-family: 'Caveat', cursive; background: #fff; box-sizing: border-box; }
         
-        .sans-input { 
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important; 
+        .sans-input {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
         }
 
         button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.3rem; font-family: 'Caveat', cursive; box-shadow: 2px 2px 0px #5d4037; }
+        button:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
+
         .modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: #fff; margin: 15% auto; padding: 20px; border: 2px solid #8d6e63; width: 80%; max-width: 320px; border-radius: 20px; font-family: system-ui, -apple-system, sans-serif; }
+        .modal-content { background-color: #fff; margin: 15% auto; padding: 20px; border: 2px solid #8d6e63; width: 80%; max-width: 320px; border-radius: 20px; font-family: system-ui, -apple-system, sans-serif; text-align: center; }
         .close { color: #5d4037; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
         .back-link { display: inline-block; margin-top: 15px; color: #8d6e63; text-decoration: underline; font-size: 1.2rem; }
         .section-title { font-size: 1.1rem; font-weight: bold; margin-top: 10px; margin-bottom: 5px; color: #4e342e; text-align: left; margin-left: 7.5%; font-family: system-ui, -apple-system, sans-serif; }
-        
+
         /* Styling for the info note section */
         .admin-note-box {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -54,7 +56,7 @@
 <body>
 
     <div class="card">
-        <h1>Add Vehicle Entry 🚗</h1>
+        <h1>Owl Watcher 🦉<p>Add Vehicle Entry 🚗</h1>
         <p>Society: <b id="societyNameLabel">Loading...</b></p>
         
         <form id="vehicleForm">
@@ -69,257 +71,74 @@
                 <option value="Owner">Owner</option>
                 <option value="Tenant">Tenant</option>
             </select>
-            
+
             <div style="width: 85%; margin: 0 auto;">
                 <input type="tel" id="mobileNumber" placeholder="Mobile Number (10 digits)" maxlength="10" required class="sans-input" style="width: 100%; font-size: 1rem; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; box-sizing: border-box; margin-bottom: 15px;">
-                
+
                 <!-- Dynamic Container for Allowed Vehicle Input Fields -->
                 <div id="dynamicVehicleFields" style="text-align: left;"></div>
             </div>
 
             <button type="submit" id="submitBtn" style="display:none; margin-top: 15px;">Submit Entry</button>
+            <p id="restrictionNote" style="font-family: sans-serif; font-size: 0.9rem; color: #d32f2f; margin-top: 15px; display: none;">
+                ⚠️ One entry allowed per device for this society.
+            </p>
         </form>
 
         <!-- Informational Note with WhatsApp Contact Link -->
         <div class="admin-note-box">
-            ⚠️ <b>Note:</b> If you need to edit details kindly contact society admin. If tenant changed or owner changed kindly inform society admin as well by clicking below contact button.<br>
+            ⚠️ <b>Note:</b> If details need to be edited, kindly contact the society admin. If a tenant or owner has changed, kindly inform the society admin as well by clicking the contact button below.<br>
             <a id="adminWhatsAppLink" href="https://wa.me/919033406816" target="_blank" class="whatsapp-contact-btn">💬 Contact Admin on WhatsApp</a>
         </div>
-        
+
         <a href="index.html" class="back-link">Back to Home</a>
     </div>
 
     <div id="resultModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="document.getElementById('resultModal').style.display='none'">&times;</span>
-            <div id="modalMessage"></div>
+            <div id="modalMessage" style="margin-top: 10px;"></div>
+            <button onclick="document.getElementById('resultModal').style.display='none'" style="margin-top: 20px; font-size: 1rem;">OK</button>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, collection, getDocs, addDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-   
-        const firebaseConfig = {
-            apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
-            authDomain: "finder-owl.firebaseapp.com",
-            projectId: "finder-owl",
-            storageBucket: "finder-owl.firebasestorage.app",
-            messagingSenderId: "1011347100861",
-            appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4"
-        };
+    <script type="module" src="entry-logic.js"></script>
+    <!-- Owl Interactive Effect Widget -->
+    <div id="owl-container">
+      <div id="owl-icon" onclick="activateOwlEffect()">🦉</div>
+      <audio id="owl-audio" src="theme.mp3" preload="auto"></audio>
+    </div>
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+<style>
+  #owl-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; }
+  #owl-icon { font-size: 60px; cursor: pointer; user-select: none; transition: transform 0.3s ease; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2)); }
+  #owl-icon:hover { transform: scale(1.15); }
+  @keyframes enlargeAndShrinkTwice {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.6); }
+    50% { transform: scale(1); }
+    75% { transform: scale(1.6); }
+    100% { transform: scale(1); }
+  }
+  .active-effect { animation: enlargeAndShrinkTwice 2s ease-in-out forwards; }
+</style>
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const societyId = urlParams.get('societyId');
+<script>
+  function activateOwlEffect() {
+    const container = document.getElementById('owl-container');
+    const audio = document.getElementById('owl-audio');
+    if (container.classList.contains('active-effect')) return;
+    audio.currentTime = 0;
+    audio.play().catch(error => {
+      console.log("Audio playback blocked or file not found:", error);
+    });
+    container.classList.add('active-effect');
+    setTimeout(() => {
+      container.classList.remove('active-effect');
+    }, 2000);
+  }
+</script>        
 
-        const modal = document.getElementById("resultModal");
-        function showModal(msg) {
-            document.getElementById("modalMessage").innerHTML = msg;
-            modal.style.display = "block";
-        }
-        window.onclick = (e) => { if (e.target == modal) modal.style.display = "none"; };
 
-        let societyData = {};
-
-        async function updateContactUsWhatsAppLink() {
-            try {
-                let owlWatcherTeamPhone = "919033406816";
-                const configDoc = await getDoc(doc(db, "configs", "owlwatcher"));
-                if (configDoc.exists()) {
-                    const data = configDoc.data();
-                    if (data.teamPhone) {
-                        owlWatcherTeamPhone = data.teamPhone.replace(/\D/g, '');
-                    }
-                }
-                const whatsappLinkElem = document.getElementById('adminWhatsAppLink');
-                if (whatsappLinkElem) {
-                    whatsappLinkElem.href = `https://wa.me/${owlWatcherTeamPhone}?text=Hello%20Admin,%20I%20need%20assistance%20regarding%20my%20society%20details.`;
-                }
-            } catch (err) {
-                console.error("Failed to fetch dynamic master admin phone, using fallback.", err);
-            }
-        }
-
-        async function initPage() {
-            await updateContactUsWhatsAppLink();
-
-            if (!societyId) {
-                showModal("⚠️ No society selected. Redirecting...");
-                setTimeout(() => window.location.href = "index.html", 2000);
-                return;
-            }
-
-            const socDoc = await getDoc(doc(db, "societies", societyId));
-            if (socDoc.exists()) {
-                societyData = socDoc.data();
-                document.getElementById("societyNameLabel").innerText = societyData.name || "Unknown";
-
-                const flatSelect = document.getElementById("flatSelect");
-                if (societyData.flatList && Array.isArray(societyData.flatList)) {
-                    societyData.flatList.forEach(flat => {
-                        let opt = document.createElement("option");
-                        opt.value = flat;
-                        opt.textContent = flat;
-                        flatSelect.appendChild(opt);
-                    });
-                }
-            }
-        }
-
-        initPage();
-
-        document.getElementById("flatSelect").addEventListener("change", async (e) => {
-            const flatNumber = e.target.value;
-            const container = document.getElementById("dynamicVehicleFields");
-            const submitBtn = document.getElementById("submitBtn");
-            container.innerHTML = "";
-            submitBtn.style.display = "none";
-
-            if (!flatNumber) return;
-
-            const targetSociety = societyData.name || societyId;
-            const max4W = societyData.max4Wheeler !== undefined ? societyData.max4Wheeler : 1;
-            const max2W = societyData.max2Wheeler !== undefined ? societyData.max2Wheeler : 2;
-
-            const vehiclesRef = collection(db, "vehicles");
-            const flatQuery = query(vehiclesRef, where("societyName", "==", targetSociety), where("flatNumber", "==", flatNumber));
-            const flatSnap = await getDocs(flatQuery);
-
-            let registered4W = 0;
-            let registered2W = 0;
-
-            flatSnap.forEach(docSnap => {
-                const data = docSnap.data();
-                if (data.vehicleType === "4-Wheeler") registered4W++;
-                if (data.vehicleType === "2-Wheeler") registered2W++;
-            });
-
-            const allowed4WInputs = Math.max(0, max4W - registered4W);
-            const allowed2WInputs = Math.max(0, max2W - registered2W);
-
-            if (allowed4WInputs === 0 && allowed2WInputs === 0) {
-                container.innerHTML = `<p style="color: #d32f2f; font-weight: bold; text-align: center; font-family: system-ui, sans-serif;">⚠️ Vehicle limit already reached for flat ${flatNumber}!</p>`;
-                return;
-            }
-
-            const createVehicleInput = (type, placeholderText, index) => {
-                const input = document.createElement("input");
-                input.type = "text";
-                input.className = "dynamic-vehicle-input sans-input";
-                input.dataset.type = type;
-                input.placeholder = placeholderText;
-                input.maxLength = 10;
-                input.required = true;
-                input.style.width = "100%";
-                input.style.fontSize = "1rem";
-                input.style.padding = "10px";
-                input.style.border = "2px solid #8d6e63";
-                input.style.borderRadius = "10px";
-                input.style.boxSizing = "border-box";
-                input.style.marginBottom = "10px";
-                input.style.textTransform = "uppercase";
-                
-                input.addEventListener("input", (event) => {
-                    event.target.value = event.target.value.toUpperCase();
-                });
-
-                return input;
-            };
-
-            if (allowed4WInputs > 0) {
-                const title4 = document.createElement("div");
-                title4.className = "section-title";
-                title4.innerText = `Four-Wheeler(s) (${allowed4WInputs} slot(s) left)`;
-                container.appendChild(title4);
-
-                for (let i = 0; i < allowed4WInputs; i++) {
-                    container.appendChild(createVehicleInput("4-Wheeler", `4-Wheeler Number #${i + 1} (10 characters)`, i));
-                }
-            }
-
-            if (allowed2WInputs > 0) {
-                const title2 = document.createElement("div");
-                title2.className = "section-title";
-                title2.innerText = `Two-Wheeler(s) (${allowed2WInputs} slot(s) left)`;
-                container.appendChild(title2);
-
-                for (let i = 0; i < allowed2WInputs; i++) {
-                    container.appendChild(createVehicleInput("2-Wheeler", `2-Wheeler Number #${i + 1} (10 characters)`, i));
-                }
-            }
-
-            submitBtn.style.display = "inline-block";
-        });
-
-        document.getElementById("vehicleForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const flatNumber = document.getElementById("flatSelect").value;
-            const residentType = document.getElementById("residentTypeSelect").value;
-            const mobileNumber = document.getElementById("mobileNumber").value.trim();
-            const targetSociety = societyData.name || societyId;
-            const vehicleInputs = document.querySelectorAll(".dynamic-vehicle-input");
-
-            // Validate Mobile Number Length
-            if (mobileNumber.length !== 10) {
-                showModal("<p>⚠️ Mobile number must be exactly 10 digits long.</p>");
-                return;
-            }
-
-            if (vehicleInputs.length === 0) {
-                showModal("<p>⚠️ No vehicle slots available to register.</p>");
-                return;
-            }
-
-            // Validate Vehicle Numbers Length
-            for (let input of vehicleInputs) {
-                const vNum = input.value.trim().toUpperCase();
-                if (vNum.length !== 10) {
-                    showModal(`<p>⚠️ All vehicle numbers must be exactly 10 characters long.<br><b>"${vNum}"</b> is invalid.</p>`);
-                    return;
-                }
-            }
-
-            const vehiclesRef = collection(db, "vehicles");
-
-            try {
-                for (let input of vehicleInputs) {
-                    const vNum = input.value.trim().toUpperCase();
-                    if (!vNum) continue;
-
-                    const q = query(vehiclesRef, where("societyName", "==", targetSociety), where("vehicleNumber", "==", vNum));
-                    const existingSnap = await getDocs(q);
-                    if (!existingSnap.empty) {
-                        showModal(`<p>❌ <b>Duplicate Entry</b><br>Vehicle number <b>${vNum}</b> is already registered.</p>`);
-                        return;
-                    }
-                }
-
-                for (let input of vehicleInputs) {
-                    const vNum = input.value.trim().toUpperCase();
-                    const vType = input.dataset.type;
-                    if (!vNum) continue;
-
-                    await addDoc(vehiclesRef, {
-                        societyName: targetSociety,
-                        flatNumber: flatNumber,
-                        residentType: residentType,
-                        vehicleNumber: vNum,
-                        mobileNumber: mobileNumber,
-                        vehicleType: vType,
-                        timestamp: new Date()
-                    });
-                }
-                
-                showModal("<p>✅ Vehicle(s) registered successfully!</p>");
-                setTimeout(() => window.location.href = "index.html", 1500);
-            } catch (err) {
-                console.error(err);
-                showModal("<p>❌ Error saving entries. Try again.</p>");
-            }
-        });
-    </script>
 </body>
 </html>

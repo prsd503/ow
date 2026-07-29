@@ -5,6 +5,8 @@ import {
     indexedDBLocalPersistence, 
     browserLocalPersistence 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+// 1. Import App Check modules
+import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js";
 import { Filesystem, Directory, Encoding } from 'https://cdn.jsdelivr.net/npm/@capacitor/filesystem@latest/+esm';
 
 // FIXED: Cleaned up authDomain to remove protocols/slashes and pointed to the correct handler
@@ -18,6 +20,13 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
+// 2. Initialize App Check for Web using your reCAPTCHA v3 Site Key
+const appCheck = initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider('6Lfuf2stAAAAAAlz5z9Ekm8XZusdtLYwII04KCZy'),
+  isTokenAutoRefreshEnabled: true
+});
+
 export const db = getFirestore(app);
 
 // --- CAPACITOR PERSISTENCE FIX ---

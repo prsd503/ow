@@ -27,7 +27,7 @@ self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
 
 // 2. Initialize App Check for Web using your correct reCAPTCHA v3 Site Key
 const appCheck = initializeAppCheck(app, {
-  provider: new ReCaptchaV3Provider('6Lfuf2stAAAAAAlz5z9Ekm8XZusdtLYwII04KCZy'),
+  provider: new ReCaptchaV3Provider('6LfyzGwtAAAAAPj_AmQ3jjFhjuyYa5P8fxrxTGFI'),
   isTokenAutoRefreshEnabled: true
 });
 

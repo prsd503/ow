@@ -21,7 +21,11 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// 2. Initialize App Check for Web using your reCAPTCHA v3 Site Key
+// --- APP CHECK DEBUG TOKEN FIX ---
+// Enables a local debug token fallback so App Check doesn't throw permission-denied errors on web/GitHub Pages before tokens propagate.
+self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+
+// 2. Initialize App Check for Web using your correct reCAPTCHA v3 Site Key
 const appCheck = initializeAppCheck(app, {
   provider: new ReCaptchaV3Provider('6Lfuf2stAAAAAAlz5z9Ekm8XZusdtLYwII04KCZy'),
   isTokenAutoRefreshEnabled: true

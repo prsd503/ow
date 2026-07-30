@@ -270,456 +270,478 @@ body { padding-top: 80px; }
     </div>
 </div>
     <script type="module">
+    // 1. Import everything from Firebase in one place
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+    import { 
+        getFirestore, 
+        doc, 
+        getDoc, 
+        setDoc, 
+        collection, 
+        query, 
+        where, 
+        getDocs, 
+        onSnapshot 
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const themeAudio = new Audio('tapenter.mp3'); 
-      
-        const modal = document.getElementById("resultModal");
-        let currentSociety = "";
-        let guardUnsubscribe = null;
-        let adInterval = null;
-        let globalAdInterval = null;
+    // 2. Firebase Configuration & Initialization
+    const firebaseConfig = {
+        apiKey: "AIzaSyBEYKHQpy_VjmgjYIwQOPjXth1bghYsf9M",
+        authDomain: "finder-owl.firebaseapp.com",
+        projectId: "finder-owl",
+        storageBucket: "finder-owl.firebasestorage.app",
+        messagingSenderId: "1011347100861",
+        appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4",
+        measurementId: "G-6FWCNYMK8C"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
+
+    // 3. Application State & Variables
+    const themeAudio = new Audio('tapenter.mp3'); 
+    const modal = document.getElementById("resultModal");
+    let currentSociety = "";
+    let guardUnsubscribe = null;
+    let adInterval = null;
+    let globalAdInterval = null;
+    let owlWatcherTeamPhone = "919033406816";
+    let currentIndex = 0;
+    let totalSlides = 0;
+    let currentGlobalIndex = 0;
+    let totalGlobalSlides = 0;
+
+    function showModal(content) { 
+        document.getElementById("result").innerHTML = content; 
+        modal.style.display = "block"; 
+    }
+    window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
+
+    document.getElementById('menuToggle').addEventListener('click', function() {
+        const navLinks = document.getElementById('navLinks');
+        navLinks.classList.toggle('active');
+    });
+    
+    async function fetchTeamPhone() {
+        try {
+            const configDoc = await getDoc(doc(db, "configs", "owlwatcher"));
+            if (configDoc.exists()) {
+                const data = configDoc.data();
+                if (data.teamPhone) {
+                    owlWatcherTeamPhone = data.teamPhone.replace(/\D/g, '');
+                }
+                if (data.welcomeMessage) {
+                    const welcomeEl = document.getElementById('overlayWelcomeText');
+                    if (welcomeEl) {
+                        welcomeEl.innerHTML = data.welcomeMessage.replace(/\n/g, '<br>');
+                    }
+                }
+            }
+        } catch (err) {
+            console.error("Failed to fetch dynamic master admin phone, using fallback.", err);
+        }
+    }
+
+    function updateAdLinks(societyName = "") {
+        const globalAdLink = document.getElementById("globalAdLink");
+        if (globalAdLink) {
+            const globalText = encodeURIComponent("Hi I want to apply for global ad in Owl Watcher");
+            globalAdLink.href = `https://wa.me/${owlWatcherTeamPhone}?text=${globalText}`;
+        }
+
+        const registerBtn = document.getElementById("registerSocietyBtn");
+        if (registerBtn) {
+            const regText = encodeURIComponent("Hi, I want to register my society/organisation in Owl Watcher app");
+            registerBtn.href = `https://wa.me/${owlWatcherTeamPhone}?text=${regText}`;
+        }
+
+        const localAdLink = document.getElementById("localAdLink");
+        if (localAdLink && societyName) {
+            const localText = encodeURIComponent(`Hi I want to apply for local-society post in Owl Watcher for ${societyName}`);
+            localAdLink.href = `https://wa.me/${owlWatcherTeamPhone}?text=${localText}`;
+            localAdLink.innerText = `Contact for Posting Paid Content in ${societyName}!`;
+        }
+    }
+
+    async function loadNotice(societyId) {
+        const noticeDiv = document.getElementById('notice-content');
+        const docRef = doc(db, "notices", societyId);
+        const snap = await getDoc(docRef);
         
-        let owlWatcherTeamPhone = "919033406816";
-        
-        let currentIndex = 0;
-        let totalSlides = 0;
-        let currentGlobalIndex = 0;
-        let totalGlobalSlides = 0;
+        const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
+        const formatter = new Intl.DateTimeFormat('en-CA', options);
+        const currentIstDateStr = formatter.format(new Date());
 
+        if (snap.exists()) {
+            let data = snap.data();
+            let todayMsg = data.todayMessage || "";
+            let tomorrowMsg = data.tomorrowMessage || "";
+            let storedDate = data.date || currentIstDateStr;
 
+            if (storedDate < currentIstDateStr) {
+                todayMsg = tomorrowMsg;
+                tomorrowMsg = "";
+                storedDate = currentIstDateStr;
 
-        
-        function showModal(content) { document.getElementById("result").innerHTML = content; modal.style.display = "block"; }
-        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
+                try {
+                    await setDoc(docRef, { 
+                        todayMessage: todayMsg, 
+                        tomorrowMessage: tomorrowMsg, 
+                        date: storedDate 
+                    }, { merge: true });
+                } catch (err) {
+                    console.error("Failed to rollover notice automatically:", err);
+                }
+            }
 
-        document.getElementById('menuToggle').addEventListener('click', function() {
-            const navLinks = document.getElementById('navLinks');
-            navLinks.classList.toggle('active');
+            if (todayMsg) {
+                const characterLimit = 60; 
+                let previewText = todayMsg;
+                let readMoreLink = "";
+
+                if (todayMsg.length > characterLimit) {
+                    previewText = todayMsg.substring(0, characterLimit).trim() + "...";
+                    readMoreLink = ` <a href="notice.html?id=${societyId}" style="color: #8d6e63; font-weight: bold; text-decoration: underline; font-family: sans-serif; font-size: 0.9rem;">Read More</a>`;
+                }
+
+                noticeDiv.innerHTML = `<p class="notice-date">${currentIstDateStr}</p><div>${previewText}${readMoreLink}</div>`;
+            } else {
+                noticeDiv.innerText = "No notices for today.";
+            }
+        } else { 
+            noticeDiv.innerText = "No notices for today."; 
+        }
+    }
+
+    function setupGuard(societyId) {
+        if (guardUnsubscribe) guardUnsubscribe();
+        guardUnsubscribe = onSnapshot(doc(db, "societies", societyId), (snap) => {
+            if (snap.exists() && snap.data().activeGuardName) {
+                const g = snap.data();
+                document.getElementById("guard-container").innerHTML = `
+                    <div style="padding:10px; border:2px solid #8d6e63; border-radius:10px; background:#fdf6e3;">
+                        <p style="margin:0;">On Duty: <b>${g.activeGuardName}</b></p>
+                        <a href="tel:${g.activeGuardPhone}" class="btn-msg" style="background:#27ae60; margin-top:5px;">📞 Call Security</a>
+                    </div>`;
+            } else {
+                document.getElementById("guard-container").innerHTML = "";
+            }
         });
+    }
+
+    function changeSlide(direction) {
+        const slider = document.getElementById("adSlider");
+        const slides = slider.getElementsByClassName("ad-slide");
+        if (slides.length <= 1) return;
+
+        slides[currentIndex].classList.remove("active");
         
-        async function fetchTeamPhone() {
-            try {
-                const configDoc = await getDoc(doc(db, "configs", "owlwatcher"));
-                if (configDoc.exists()) {
-                    const data = configDoc.data();
-                    if (data.teamPhone) {
-                        owlWatcherTeamPhone = data.teamPhone.replace(/\D/g, '');
-                    }
-                    if (data.welcomeMessage) {
-                        const welcomeEl = document.getElementById('overlayWelcomeText');
-                        if (welcomeEl) {
-                            welcomeEl.innerHTML = data.welcomeMessage.replace(/\n/g, '<br>');
-                        }
-                    }
-                }
-            } catch (err) {
-                console.error("Failed to fetch dynamic master admin phone, using fallback.", err);
-            }
+        if (direction === "next") {
+            currentIndex = (currentIndex + 1) % slides.length;
+        } else if (direction === "prev") {
+            currentIndex = (currentIndex - 1 + slides.length) % slides.length;
         }
+        
+        slides[currentIndex].classList.add("active");
+    }
 
-        function updateAdLinks(societyName = "") {
-            const globalAdLink = document.getElementById("globalAdLink");
-            if (globalAdLink) {
-                const globalText = encodeURIComponent("Hi I want to apply for global ad in Owl Watcher");
-                globalAdLink.href = `https://wa.me/${owlWatcherTeamPhone}?text=${globalText}`;
-            }
+    function changeGlobalSlide(direction) {
+        const slider = document.getElementById("globalAdSlider");
+        const slides = slider.getElementsByClassName("global-ad-slide");
+        if (slides.length <= 1) return;
 
-            const registerBtn = document.getElementById("registerSocietyBtn");
-            if (registerBtn) {
-                const regText = encodeURIComponent("Hi, I want to register my society/organisation in Owl Watcher app");
-                registerBtn.href = `https://wa.me/${owlWatcherTeamPhone}?text=${regText}`;
-            }
-
-            const localAdLink = document.getElementById("localAdLink");
-            if (localAdLink && societyName) {
-                const localText = encodeURIComponent(`Hi I want to apply for local-society post in Owl Watcher for ${societyName}`);
-                localAdLink.href = `https://wa.me/${owlWatcherTeamPhone}?text=${localText}`;
-                localAdLink.innerText = `Contact for Posting Paid Content in ${societyName}!`;
-            }
+        slides[currentGlobalIndex].classList.remove("active");
+        
+        if (direction === "next") {
+            currentGlobalIndex = (currentGlobalIndex + 1) % slides.length;
+        } else if (direction === "prev") {
+            currentGlobalIndex = (currentGlobalIndex - 1 + slides.length) % slides.length;
         }
+        
+        slides[currentGlobalIndex].classList.add("active");
+    }
 
-        async function loadNotice(societyId) {
-            const noticeDiv = document.getElementById('notice-content');
-            const docRef = doc(db, "notices", societyId);
-            const snap = await getDoc(docRef);
+    function startAdTimer() {
+        if (adInterval) clearInterval(adInterval);
+        const slider = document.getElementById("adSlider");
+        const slides = slider.getElementsByClassName("ad-slide");
+        
+        if (slides.length > 1) {
+            adInterval = setInterval(() => {
+                changeSlide("next");
+            }, 5000);
+        }
+    }
+
+    function startGlobalAdTimer() {
+        if (globalAdInterval) clearInterval(globalAdInterval);
+        const slider = document.getElementById("globalAdSlider");
+        const slides = slider.getElementsByClassName("global-ad-slide");
+        
+        if (slides.length > 1) {
+            globalAdInterval = setInterval(() => {
+                changeGlobalSlide("next");
+            }, 5000);
+        }
+    }
+
+    async function loadGlobalAdsPreLogin() {
+        const slider = document.getElementById("globalAdSlider");
+        const controls = document.getElementById("globalAdControls");
+        if(globalAdInterval) clearInterval(globalAdInterval);
+
+        try {
+            const globalQuery = query(
+                collection(db, "ads"),
+                where("type", "==", "global"),
+                where("societyApproved", "==", true),
+                where("owlWatcherApproved", "==", true)
+            );
             
-            const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
-            const formatter = new Intl.DateTimeFormat('en-CA', options);
-            const currentIstDateStr = formatter.format(new Date());
-
-            if (snap.exists()) {
-                let data = snap.data();
-                let todayMsg = data.todayMessage || "";
-                let tomorrowMsg = data.tomorrowMessage || "";
-                let storedDate = data.date || currentIstDateStr;
-
-                if (storedDate < currentIstDateStr) {
-                    todayMsg = tomorrowMsg;
-                    tomorrowMsg = "";
-                    storedDate = currentIstDateStr;
-
-                    try {
-                        await setDoc(docRef, { 
-                            todayMessage: todayMsg, 
-                            tomorrowMessage: tomorrowMsg, 
-                            date: storedDate 
-                        }, { merge: true });
-                    } catch (err) {
-                        console.error("Failed to rollover notice automatically:", err);
-                    }
-                }
-
-                if (todayMsg) {
-                    const characterLimit = 60; 
-                    let previewText = todayMsg;
-                    let readMoreLink = "";
-
-                    if (todayMsg.length > characterLimit) {
-                        previewText = todayMsg.substring(0, characterLimit).trim() + "...";
-                        readMoreLink = ` <a href="notice.html?id=${societyId}" style="color: #8d6e63; font-weight: bold; text-decoration: underline; font-family: sans-serif; font-size: 0.9rem;">Read More</a>`;
-                    }
-
-                    noticeDiv.innerHTML = `<p class="notice-date">${currentIstDateStr}</p><div>${previewText}${readMoreLink}</div>`;
-                } else {
-                    noticeDiv.innerText = "No notices for today.";
-                }
-            } else { 
-                noticeDiv.innerText = "No notices for today."; 
+            const snap = await getDocs(globalQuery);
+            if (snap.empty) {
+                slider.innerHTML = `<p id="global-ad-placeholder" style="color: #a1887f;">Space Available for Your Content</p>`;
+                controls.style.display = "none";
+                return;
             }
-        }
 
-        function setupGuard(societyId) {
-            if (guardUnsubscribe) guardUnsubscribe();
-            guardUnsubscribe = onSnapshot(doc(db, "societies", societyId), (snap) => {
-                if (snap.exists() && snap.data().activeGuardName) {
-                    const g = snap.data();
-                    document.getElementById("guard-container").innerHTML = `
-                        <div style="padding:10px; border:2px solid #8d6e63; border-radius:10px; background:#fdf6e3;">
-                            <p style="margin:0;">On Duty: <b>${g.activeGuardName}</b></p>
-                            <a href="tel:${g.activeGuardPhone}" class="btn-msg" style="background:#27ae60; margin-top:5px;">📞 Call Security</a>
-                        </div>`;
-                } else {
-                    document.getElementById("guard-container").innerHTML = "";
+            slider.innerHTML = "";
+            snap.forEach((doc) => {
+                const adData = doc.data();
+                if (adData.imageUrl) {
+                    slider.innerHTML += `<img src="${adData.imageUrl}" class="global-ad-slide" alt="Global Promotion">`;
                 }
             });
-        }
 
-        function changeSlide(direction) {
-            const slider = document.getElementById("adSlider");
-            const slides = slider.getElementsByClassName("ad-slide");
-            if (slides.length <= 1) return;
-
-            slides[currentIndex].classList.remove("active");
-            
-            if (direction === "next") {
-                currentIndex = (currentIndex + 1) % slides.length;
-            } else if (direction === "prev") {
-                currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-            }
-            
-            slides[currentIndex].classList.add("active");
-        }
-
-        function changeGlobalSlide(direction) {
-            const slider = document.getElementById("globalAdSlider");
             const slides = slider.getElementsByClassName("global-ad-slide");
-            if (slides.length <= 1) return;
+            totalGlobalSlides = slides.length;
+            currentGlobalIndex = 0;
 
-            slides[currentGlobalIndex].classList.remove("active");
-            
-            if (direction === "next") {
-                currentGlobalIndex = (currentGlobalIndex + 1) % slides.length;
-            } else if (direction === "prev") {
-                currentGlobalIndex = (currentGlobalIndex - 1 + slides.length) % slides.length;
+            if (totalGlobalSlides > 0) {
+                slides[currentGlobalIndex].classList.add("active");
+                if (totalGlobalSlides > 1) {
+                    controls.style.display = "flex";
+                    startGlobalAdTimer();
+                } else {
+                    controls.style.display = "none";
+                }
+            } else {
+                slider.innerHTML = `<p id="global-ad-placeholder" style="color: #a1887f;">Space Available for Your Content</p>`;
+                controls.style.display = "none";
             }
-            
-            slides[currentGlobalIndex].classList.add("active");
+        } catch (error) {
+            console.error("Error setting up pre-login global ad banner: ", error);
         }
+    }
 
-        function startAdTimer() {
-            if (adInterval) clearInterval(adInterval);
-            const slider = document.getElementById("adSlider");
+    async function loadAds(societyId) {
+        const slider = document.getElementById("adSlider");
+        const controls = document.getElementById("adControls");
+        if(adInterval) clearInterval(adInterval);
+
+        try {
+            const q = query(
+                collection(db, "ads"), 
+                where("societyId", "==", societyId),
+                where("societyApproved", "==", true),
+                where("owlWatcherApproved", "==", true)
+            );
+            
+            const snap = await getDocs(q);
+            if (snap.empty) {
+                slider.innerHTML = `<p id="ad-placeholder" style="color: #a1887f;">Space Available for Your Content</p>`;
+                controls.style.display = "none";
+                return;
+            }
+
+            slider.innerHTML = "";
+            snap.forEach((doc) => {
+                const adData = doc.data();
+                if (adData.imageUrl) {
+                    slider.innerHTML += `<img src="${adData.imageUrl}" class="ad-slide" alt="Community Ad">`;
+                }
+            });
+
             const slides = slider.getElementsByClassName("ad-slide");
-            
-            if (slides.length > 1) {
-                adInterval = setInterval(() => {
-                    changeSlide("next");
-                }, 5000);
-            }
-        }
+            totalSlides = slides.length;
+            currentIndex = 0;
 
-        function startGlobalAdTimer() {
-            if (globalAdInterval) clearInterval(globalAdInterval);
-            const slider = document.getElementById("globalAdSlider");
-            const slides = slider.getElementsByClassName("global-ad-slide");
-            
-            if (slides.length > 1) {
-                globalAdInterval = setInterval(() => {
-                    changeGlobalSlide("next");
-                }, 5000);
-            }
-        }
+            if (totalSlides > 0) {
+                slides[currentIndex].classList.add("active");
 
-        async function loadGlobalAdsPreLogin() {
-            const slider = document.getElementById("globalAdSlider");
-            const controls = document.getElementById("globalAdControls");
-            if(globalAdInterval) clearInterval(globalAdInterval);
-
-            try {
-                const globalQuery = query(
-                    collection(db, "ads"),
-                    where("type", "==", "global"),
-                    where("societyApproved", "==", true),
-                    where("owlWatcherApproved", "==", true)
-                );
-                
-                const snap = await getDocs(globalQuery);
-                if (snap.empty) {
-                    slider.innerHTML = `<p id="global-ad-placeholder" style="color: #a1887f;">Space Available for Your Content</p>`;
-                    controls.style.display = "none";
-                    return;
-                }
-
-                slider.innerHTML = "";
-                snap.forEach((doc) => {
-                    const adData = doc.data();
-                    if (adData.imageUrl) {
-                        slider.innerHTML += `<img src="${adData.imageUrl}" class="global-ad-slide" alt="Global Promotion">`;
-                    }
-                });
-
-                const slides = slider.getElementsByClassName("global-ad-slide");
-                totalGlobalSlides = slides.length;
-                currentGlobalIndex = 0;
-
-                if (totalGlobalSlides > 0) {
-                    slides[currentGlobalIndex].classList.add("active");
-                    if (totalGlobalSlides > 1) {
-                        controls.style.display = "flex";
-                        startGlobalAdTimer();
-                    } else {
-                        controls.style.display = "none";
-                    }
+                if (totalSlides > 1) {
+                    controls.style.display = "flex";
+                    startAdTimer();
                 } else {
-                    slider.innerHTML = `<p id="global-ad-placeholder" style="color: #a1887f;">Space Available for Your Content</p>`;
                     controls.style.display = "none";
                 }
-            } catch (error) {
-                console.error("Error setting up pre-login global ad banner: ", error);
+            } else {
+                slider.innerHTML = `<p id="ad-placeholder" style="color: #a1887f;">Space Available for Your Content</p>`;
+                controls.style.display = "none";
             }
+        } catch (error) {
+            console.error("Error setting up dynamic ad array: ", error);
         }
+    }
 
-        async function loadAds(societyId) {
-            const slider = document.getElementById("adSlider");
-            const controls = document.getElementById("adControls");
-            if(adInterval) clearInterval(adInterval);
+    document.getElementById("nextAdBtn").addEventListener("click", () => {
+        changeSlide("next");
+        startAdTimer();
+    });
 
-            try {
-                const q = query(
-                    collection(db, "ads"), 
-                    where("societyId", "==", societyId),
-                    where("societyApproved", "==", true),
-                    where("owlWatcherApproved", "==", true)
-                );
-                
-                const snap = await getDocs(q);
-                if (snap.empty) {
-                    slider.innerHTML = `<p id="ad-placeholder" style="color: #a1887f;">Space Available for Your Content</p>`;
-                    controls.style.display = "none";
-                    return;
-                }
+    document.getElementById("prevAdBtn").addEventListener("click", () => {
+        changeSlide("prev");
+        startAdTimer();
+    });
 
-                slider.innerHTML = "";
-                snap.forEach((doc) => {
-                    const adData = doc.data();
-                    if (adData.imageUrl) {
-                        slider.innerHTML += `<img src="${adData.imageUrl}" class="ad-slide" alt="Community Ad">`;
-                    }
-                });
+    document.getElementById("nextGlobalAdBtn").addEventListener("click", () => {
+        changeGlobalSlide("next");
+        startGlobalAdTimer();
+    });
 
-                const slides = slider.getElementsByClassName("ad-slide");
-                totalSlides = slides.length;
-                currentIndex = 0;
+    document.getElementById("prevGlobalAdBtn").addEventListener("click", () => {
+        changeGlobalSlide("prev");
+        startGlobalAdTimer();
+    });
 
-                if (totalSlides > 0) {
-                    slides[currentIndex].classList.add("active");
+    function showSearchScreen(societyName, societyId) {
+        currentSociety = societyName;
+        document.getElementById("society-verification").style.display = "none";
+        document.getElementById("vehicle-search").style.display = "block";
+        document.getElementById("displaySocietyName").innerText = currentSociety;
 
-                    if (totalSlides > 1) {
-                        controls.style.display = "flex";
-                        startAdTimer();
-                    } else {
-                        controls.style.display = "none";
-                    }
-                } else {
-                    slider.innerHTML = `<p id="ad-placeholder" style="color: #a1887f;">Space Available for Your Content</p>`;
-                    controls.style.display = "none";
-                }
-            } catch (error) {
-                console.error("Error setting up dynamic ad array: ", error);
-            }
-        }
+        document.getElementById("factlityPage").href = "facility.html";
+        document.getElementById("addVehiclePageBtn").href = `entry.html?societyId=${societyId}`;
 
-        document.getElementById("nextAdBtn").addEventListener("click", () => {
-            changeSlide("next");
-            startAdTimer();
-        });
+        updateAdLinks(societyName);
 
-        document.getElementById("prevAdBtn").addEventListener("click", () => {
-            changeSlide("prev");
-            startAdTimer();
-        });
+        if (globalAdInterval) clearInterval(globalAdInterval);
+        setupGuard(societyId);
+        loadNotice(societyId);
+        loadAds(societyId);
+    }
 
-        document.getElementById("nextGlobalAdBtn").addEventListener("click", () => {
-            changeGlobalSlide("next");
-            startGlobalAdTimer();
-        });
+    function clearSocietySession() {
+        localStorage.removeItem("savedSocietyName");
+        localStorage.removeItem("savedSocietyId");
+        localStorage.removeItem("societyLoginTime");
+        if (guardUnsubscribe) guardUnsubscribe();
+        if (adInterval) clearInterval(adInterval);
+        currentSociety = "";
+        document.getElementById("vehicleInput").value = "";
+        document.getElementById("societyInput").value = "";
+        document.getElementById("vehicle-search").style.display = "none";
+        document.getElementById("society-verification").style.display = "block";
+        updateAdLinks();
+        loadGlobalAdsPreLogin();
+    }
 
-        document.getElementById("prevGlobalAdBtn").addEventListener("click", () => {
-            changeGlobalSlide("prev");
-            startGlobalAdTimer();
-        });
-
+    document.getElementById("verifyBtn").addEventListener("click", async () => {
+        const input = document.getElementById("societyInput").value.trim().toLowerCase();
+        if (!input) return showModal("<p>⚠️ Please enter a society name.</p>");
         
+        const snap = await getDocs(collection(db, "societies"));
+        const match = snap.docs.find(d => d.data().name?.toLowerCase() === input);
+        if (match) {
+            localStorage.setItem("savedSocietyName", match.data().name);
+            localStorage.setItem("savedSocietyId", match.id);
+            localStorage.setItem("societyLoginTime", Date.now().toString());
+            showSearchScreen(match.data().name, match.id);
+        } else { showModal("<p>❌ Society not found.</p>"); }
+    });
 
-        function showSearchScreen(societyName, societyId) {
-            currentSociety = societyName;
-            document.getElementById("society-verification").style.display = "none";
-            document.getElementById("vehicle-search").style.display = "block";
-            document.getElementById("displaySocietyName").innerText = currentSociety;
+    document.getElementById("searchBtn").addEventListener("click", async () => {
+        themeAudio.currentTime = 0;
+        themeAudio.play().catch(e => console.error("Audio playback failed:", e));
 
-            document.getElementById("factlityPage").href = "facility.html";
-            document.getElementById("addVehiclePageBtn").href = `entry.html?societyId=${societyId}`;
-
-            updateAdLinks(societyName);
-
-            if (globalAdInterval) clearInterval(globalAdInterval);
-            setupGuard(societyId);
-            loadNotice(societyId);
-            loadAds(societyId);
+        const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
+        if (!vNum) return showModal("<p>⚠️ Please enter a vehicle number.</p>");
+        
+        const snap = await getDocs(collection(db, "vehicles"));
+        const matches = snap.docs.filter(d => d.data().societyName?.toLowerCase() === currentSociety.toLowerCase() && d.data().vehicleNumber?.toUpperCase() === vNum);
+        if (matches.length > 0) {
+            let htmlContent = "";
+            matches.forEach(found => {
+                const data = found.data();
+                const msg = encodeURIComponent(`(Using: Owl-Watcher) Hello, vehicle ${data.vehicleNumber} of ${data.flatNumber}`);
+                htmlContent += `<div style="margin-bottom:15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">✅ Vehicle: <b>${data.vehicleNumber}</b><br>Flat/Name: <b>${data.flatNumber}</b><br><div hidden><a href="https://wa.me/${data.mobileNumber?.replace(/\D/g, '')}?text=${msg}" target="_blank" class="btn-msg">💬 Message Admin</a></div></div>`;
+            });
+            showModal(htmlContent);
+        } else { 
+            showModal("<p>❌ Vehicle not found.</p>"); 
         }
+    });
 
-        function clearSocietySession() {
-            localStorage.removeItem("savedSocietyName");
-            localStorage.removeItem("savedSocietyId");
-            localStorage.removeItem("societyLoginTime");
-            if (guardUnsubscribe) guardUnsubscribe();
-            if (adInterval) clearInterval(adInterval);
-            currentSociety = "";
-            document.getElementById("vehicleInput").value = "";
-            document.getElementById("societyInput").value = "";
-            document.getElementById("vehicle-search").style.display = "none";
-            document.getElementById("society-verification").style.display = "block";
-            updateAdLinks();
+    document.getElementById("switchSocietyBtn").addEventListener("click", () => {
+        clearSocietySession();
+    });
+
+    const studioPortalBtn = document.getElementById("studioPortalBtn");
+    if (studioPortalBtn) {
+        studioPortalBtn.addEventListener("click", () => {
+            window.open("studio.html", "_self");
+        });
+    }
+
+    document.getElementById("backToHomeBtn").addEventListener("click", () => {
+        clearSocietySession();
+    });
+    
+    async function updateContactUsWhatsAppLink() {
+        try {
+            await fetchTeamPhone();
+
+            const whatsappLinks = document.querySelectorAll('a[href*="wa.me"]');
+            whatsappLinks.forEach(link => {
+                const urlObj = new URL(link.href);
+                link.href = `https://wa.me/${owlWatcherTeamPhone}${urlObj.search}`;
+            });
+        } catch (err) {
+            console.error("Failed to fetch team phone for WhatsApp link:", err);
+        }
+    }
+    
+    window.addEventListener("DOMContentLoaded", async () => {
+        await fetchTeamPhone();
+        await updateContactUsWhatsAppLink();
+        updateAdLinks();
+
+        const savedName = localStorage.getItem("savedSocietyName");
+        const savedId = localStorage.getItem("savedSocietyId");
+        const loginTime = localStorage.getItem("societyLoginTime");
+        
+        if (savedName && savedId && loginTime) {
+            const elapsed = Date.now() - parseInt(loginTime, 10);
+            const fifteenMinutes = 15 * 60 * 1000;
+
+            if (elapsed >= fifteenMinutes) {
+                clearSocietySession();
+            } else {
+                showSearchScreen(savedName, savedId);
+                setTimeout(() => {
+                    clearSocietySession();
+                }, fifteenMinutes - elapsed);
+            }
+        } else {
             loadGlobalAdsPreLogin();
         }
 
-        document.getElementById("verifyBtn").addEventListener("click", async () => {
-            const input = document.getElementById("societyInput").value.trim().toLowerCase();
-            if (!input) return showModal("<p>⚠️ Please enter a society name.</p>");
-            
-            const snap = await getDocs(collection(db, "societies"));
-            const match = snap.docs.find(d => d.data().name?.toLowerCase() === input);
-            if (match) {
-                localStorage.setItem("savedSocietyName", match.data().name);
-                localStorage.setItem("savedSocietyId", match.id);
-                localStorage.setItem("societyLoginTime", Date.now().toString());
-                showSearchScreen(match.data().name, match.id);
-            } else { showModal("<p>❌ Society not found.</p>"); }
-        });
+        setTimeout(() => {
+            window.location.reload();
+        }, 5 * 60 * 1000);
+    });
+    
+    document.getElementById('startButton').addEventListener('click', function() {
+        document.getElementById('startOverlay').style.display = 'none';
 
-        document.getElementById("searchBtn").addEventListener("click", async () => {
-            themeAudio.currentTime = 0;
-            themeAudio.play().catch(e => console.error("Audio playback failed:", e));
-
-            const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
-            if (!vNum) return showModal("<p>⚠️ Please enter a vehicle number.</p>");
-            
-            const snap = await getDocs(collection(db, "vehicles"));
-            const matches = snap.docs.filter(d => d.data().societyName?.toLowerCase() === currentSociety.toLowerCase() && d.data().vehicleNumber?.toUpperCase() === vNum);
-            if (matches.length > 0) {
-                let htmlContent = "";
-                matches.forEach(found => {
-                    const data = found.data();
-                    const msg = encodeURIComponent(`(Using: Owl-Watcher) Hello, vehicle ${data.vehicleNumber} of ${data.flatNumber}`);
-                    htmlContent += `<div style="margin-bottom:15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">✅ Vehicle: <b>${data.vehicleNumber}</b><br>Flat/Name: <b>${data.flatNumber}</b><br><div hidden><a href="https://wa.me/${data.mobileNumber?.replace(/\D/g, '')}?text=${msg}" target="_blank" class="btn-msg">💬 Message Admin</a></div></div>`;
-                });
-                showModal(htmlContent);
-            } else { 
-                showModal("<p>❌ Vehicle not found.</p>"); 
-            }
-        });
-
-        document.getElementById("switchSocietyBtn").addEventListener("click", () => {
-            clearSocietySession();
-        });
-
-        const studioPortalBtn = document.getElementById("studioPortalBtn");
-        if (studioPortalBtn) {
-            studioPortalBtn.addEventListener("click", () => {
-                window.open("studio.html", "_self");
-            });
-        }
-
-        document.getElementById("backToHomeBtn").addEventListener("click", () => {
-            clearSocietySession();
-        });
-        
-        async function updateContactUsWhatsAppLink() {
-            try {
-                await fetchTeamPhone();
-
-                const whatsappLinks = document.querySelectorAll('a[href*="wa.me"]');
-                whatsappLinks.forEach(link => {
-                    const urlObj = new URL(link.href);
-                    link.href = `https://wa.me/${owlWatcherTeamPhone}${urlObj.search}`;
-                });
-            } catch (err) {
-                console.error("Failed to fetch team phone for WhatsApp link:", err);
-            }
-        }
-        
-        window.addEventListener("DOMContentLoaded", async () => {
-            await fetchTeamPhone();
-            await updateContactUsWhatsAppLink();
-            updateAdLinks();
-
-            const savedName = localStorage.getItem("savedSocietyName");
-            const savedId = localStorage.getItem("savedSocietyId");
-            const loginTime = localStorage.getItem("societyLoginTime");
-            
-            if (savedName && savedId && loginTime) {
-                const elapsed = Date.now() - parseInt(loginTime, 10);
-                const fifteenMinutes = 15 * 60 * 1000;
-
-                if (elapsed >= fifteenMinutes) {
-                    clearSocietySession();
-                } else {
-                    showSearchScreen(savedName, savedId);
-                    setTimeout(() => {
-                        clearSocietySession();
-                    }, fifteenMinutes - elapsed);
-                }
-            } else {
-                loadGlobalAdsPreLogin();
-            }
-
-            setTimeout(() => {
-                window.location.reload();
-            }, 5 * 60 * 1000);
-        });
-        
-        document.getElementById('startButton').addEventListener('click', function() {
-            document.getElementById('startOverlay').style.display = 'none';
-
-            const hoot = document.getElementById('hootSound');
-            hoot.volume = 0.5;
-            hoot.play().catch(e => console.log("Hoot play failed:", e));
-        });
-
-
-
-        
-    </script>
+        const hoot = document.getElementById('hootSound');
+        hoot.volume = 0.5;
+        hoot.play().catch(e => console.log("Hoot play failed:", e));
+    });
+</script>   
+    
     <canvas id="fireCanvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999; display:none;"></canvas>
     <audio id="hootSound" src="tapenter.mp3" preload="auto"></audio>
 
@@ -815,37 +837,6 @@ body { padding-top: 80px; }
     }
     animateFlames();
   }
-</script>
-    <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
-import { 
-    getFirestore, 
-    doc, 
-    getDoc, 
-    setDoc, 
-    collection, 
-    query, 
-    where, 
-    getDocs, 
-    onSnapshot 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-// Your web app's Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyBEYKHQpy_VjmgjYIwQOPjXth1bghYsf9M",
-    authDomain: "finder-owl.firebaseapp.com",
-    projectId: "finder-owl",
-    storageBucket: "finder-owl.firebasestorage.app",
-    messagingSenderId: "1011347100861",
-    appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4",
-    measurementId: "G-6FWCNYMK8C"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const db = getFirestore(app);
 </script>
 </body>
 </html>

@@ -415,9 +415,11 @@ body { padding-top: 80px; }
         }
     }
 
-    function setupGuard(societyId) {
+function setupGuard(societyId) {
         if (guardUnsubscribe) guardUnsubscribe();
-        guardUnsubscribe = onSnapshot(doc(db, "societies", societyId), (snap) => {
+        
+        const docRef = doc(db, "societies", societyId);
+        guardUnsubscribe = onSnapshot(docRef, (snap) => {
             if (snap.exists() && snap.data().activeGuardName) {
                 const g = snap.data();
                 document.getElementById("guard-container").innerHTML = `
@@ -428,6 +430,8 @@ body { padding-top: 80px; }
             } else {
                 document.getElementById("guard-container").innerHTML = "";
             }
+        }, (error) => {
+            console.warn("Guard listener suppressed or disconnected:", error);
         });
     }
 
@@ -728,9 +732,9 @@ body { padding-top: 80px; }
             loadGlobalAdsPreLogin();
         }
 
-        setTimeout(() => {
-            window.location.reload();
-        }, 5 * 60 * 1000);
+     //   setTimeout(() => {
+       //     window.location.reload();
+  //      }, 5 * 60 * 1000);
     });
     
     document.getElementById('startButton').addEventListener('click', function() {
